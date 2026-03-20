@@ -735,8 +735,8 @@ async function calculate() {
     if (!startKey) throw new Error('No price data available for or after your start date. The stock may not have existed then.');
 
     const endKey = getMostRecentDate(monthly);
-    const buyPrice = parseFloat(monthly[startKey]['4. close']);
-    const currentPrice = parseFloat(monthly[endKey]['4. close']);
+    const buyPrice = parseFloat(monthly[startKey]['5. adjusted close']);
+    const currentPrice = parseFloat(monthly[endKey]['5. adjusted close']);
     if (!buyPrice || !currentPrice) throw new Error('Price data unavailable for this symbol.');
 
     let preciseCurrent = currentPrice;
