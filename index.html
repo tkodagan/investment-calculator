@@ -23,7 +23,6 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { font-size: 16px; }
 
   body {
@@ -35,8 +34,7 @@
     flex-direction: column;
     align-items: center;
     padding: 60px 24px;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(184,255,87,0.06) 0%, transparent 70%);
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(184,255,87,0.06) 0%, transparent 70%);
   }
 
   header {
@@ -63,10 +61,7 @@
     letter-spacing: -0.01em;
   }
 
-  h1 em {
-    font-style: italic;
-    color: var(--accent);
-  }
+  h1 em { font-style: italic; color: var(--accent); }
 
   .subtitle {
     margin-top: 14px;
@@ -132,8 +127,83 @@
   }
 
   input::placeholder { color: var(--muted); opacity: 0.6; }
-
   input[type="text"] { text-transform: uppercase; }
+
+  /* Autocomplete */
+  .autocomplete-wrap {
+    position: relative;
+  }
+
+  .autocomplete-wrap input {
+    text-transform: uppercase;
+  }
+
+  #tickerDropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #1a1f1a;
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    z-index: 100;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dropdown-item:last-child { border-bottom: none; }
+
+  .dropdown-item:hover,
+  .dropdown-item.active {
+    background: rgba(184,255,87,0.07);
+  }
+
+  .dropdown-symbol {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    min-width: 60px;
+  }
+
+  .dropdown-name {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    flex: 1;
+    padding: 0 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: none;
+  }
+
+  .dropdown-type {
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  .dropdown-searching {
+    padding: 12px 16px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
 
   .row {
     display: grid;
@@ -218,23 +288,56 @@
     color: var(--muted);
   }
 
+  /* Value display: two big numbers side by side */
+  .value-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .value-pair::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 10%;
+    height: 80%;
+    width: 1px;
+    background: var(--border-bright);
+  }
+
+  .value-block { padding-right: 24px; }
+  .value-block:last-child { padding-right: 0; padding-left: 24px; }
+
+  .value-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
   .big-number {
     font-family: var(--font-display);
-    font-size: clamp(2.6rem, 7vw, 4rem);
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
     line-height: 1;
-    margin-bottom: 8px;
     letter-spacing: -0.02em;
+    color: var(--text);
   }
 
   .big-number.gain { color: var(--gain); }
   .big-number.loss { color: var(--loss); }
 
-  .current-value {
-    font-size: 0.75rem;
+  .big-number-sub {
+    font-size: 0.72rem;
     color: var(--muted);
-    letter-spacing: 0.06em;
-    margin-bottom: 32px;
+    margin-top: 6px;
+    letter-spacing: 0.04em;
   }
+
+  .big-number-sub.gain { color: var(--accent-dim); }
+  .big-number-sub.loss { color: var(--loss-dim); }
 
   .stats-grid {
     display: grid;
@@ -306,6 +409,9 @@
     .row { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr; }
     .ticker-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .value-pair { grid-template-columns: 1fr; gap: 20px; }
+    .value-pair::after { display: none; }
+    .value-block, .value-block:last-child { padding: 0; }
   }
 </style>
 </head>
@@ -320,7 +426,14 @@
 <div class="card">
   <div class="field">
     <label>Ticker / Symbol</label>
-    <input type="text" id="ticker" placeholder="AAPL, SPY, MSFT..." maxlength="10" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="autocomplete-wrap">
+      <input type="text" id="ticker" placeholder="AAPL, SPY, MSFT..." maxlength="10"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             oninput="onTickerInput(this.value)"
+             onkeydown="onTickerKeydown(event)"
+             onblur="hideDropdownDelayed()">
+      <div id="tickerDropdown"></div>
+    </div>
   </div>
   <div class="row">
     <div class="field">
@@ -344,6 +457,7 @@
 <script>
 const API_KEY = 'LS6NMT89KF6VCU0X';
 
+// --- Formatting ---
 function fmt(n) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -354,6 +468,7 @@ function fmtDate(dateStr) {
   return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
 }
 
+// --- Status / loading ---
 function setStatus(msg) {
   const el = document.getElementById('status');
   el.textContent = msg;
@@ -366,16 +481,120 @@ function setLoading(on) {
   document.getElementById('calcBtn').textContent = on ? 'Fetching data...' : 'Calculate Return';
 }
 
+// --- Autocomplete ---
+let searchTimeout = null;
+let dropdownItems = [];
+let activeIndex = -1;
+let skipNextSearch = false;
+
+function onTickerInput(val) {
+  if (skipNextSearch) { skipNextSearch = false; return; }
+  const q = val.trim();
+  if (q.length < 1) { hideDropdown(); return; }
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => searchTickers(q), 280);
+}
+
+async function searchTickers(q) {
+  const dropdown = document.getElementById('tickerDropdown');
+  dropdown.innerHTML = '<div class="dropdown-searching">Searching&hellip;</div>';
+  dropdown.style.display = 'block';
+
+  try {
+    const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(q)}&apikey=${API_KEY}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (data['Information']) {
+      dropdown.innerHTML = '<div class="dropdown-searching">Rate limit reached &mdash; type the ticker manually</div>';
+      return;
+    }
+
+    const matches = (data.bestMatches || []).slice(0, 7);
+    dropdownItems = matches;
+    activeIndex = -1;
+
+    if (matches.length === 0) {
+      dropdown.innerHTML = '<div class="dropdown-searching">No matches found</div>';
+      return;
+    }
+
+    dropdown.innerHTML = matches.map((m, i) => `
+      <div class="dropdown-item" data-index="${i}" onmousedown="selectTicker(${i})">
+        <span class="dropdown-symbol">${m['1. symbol']}</span>
+        <span class="dropdown-name">${m['2. name']}</span>
+        <span class="dropdown-type">${m['3. type']}</span>
+      </div>
+    `).join('');
+  } catch(e) {
+    dropdown.innerHTML = '<div class="dropdown-searching">Search unavailable</div>';
+  }
+}
+
+function selectTicker(index) {
+  const item = dropdownItems[index];
+  if (!item) return;
+  skipNextSearch = true;
+  const input = document.getElementById('ticker');
+  input.value = item['1. symbol'];
+  hideDropdown();
+  // Move focus to date field for smoother UX
+  document.getElementById('startDate').focus();
+}
+
+function hideDropdown() {
+  const dropdown = document.getElementById('tickerDropdown');
+  dropdown.style.display = 'none';
+  dropdownItems = [];
+  activeIndex = -1;
+}
+
+function hideDropdownDelayed() {
+  // Delay so mousedown on item fires first
+  setTimeout(hideDropdown, 200);
+}
+
+function onTickerKeydown(e) {
+  const dropdown = document.getElementById('tickerDropdown');
+  if (dropdown.style.display === 'none') return;
+
+  const items = dropdown.querySelectorAll('.dropdown-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeIndex = Math.min(activeIndex + 1, items.length - 1);
+    updateActiveItem(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeIndex = Math.max(activeIndex - 1, -1);
+    updateActiveItem(items);
+  } else if (e.key === 'Enter') {
+    if (activeIndex >= 0 && activeIndex < dropdownItems.length) {
+      e.preventDefault();
+      selectTicker(activeIndex);
+    } else {
+      hideDropdown();
+      calculate();
+    }
+  } else if (e.key === 'Escape') {
+    hideDropdown();
+  }
+}
+
+function updateActiveItem(items) {
+  items.forEach((el, i) => {
+    el.classList.toggle('active', i === activeIndex);
+  });
+}
+
+// --- Price fetching ---
 async function fetchMonthlyPrices(ticker) {
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}&apikey=${API_KEY}`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('Network error fetching price data.');
   const data = await resp.json();
-
   if (data['Information']) throw new Error('API rate limit reached. Alpha Vantage free tier allows 25 requests/day. Please wait a moment.');
   if (data['Error Message']) throw new Error(`Symbol "${ticker}" not found. Check the ticker and try again.`);
   if (!data['Monthly Adjusted Time Series']) throw new Error('Unexpected API response. The symbol may be invalid.');
-
   return data['Monthly Adjusted Time Series'];
 }
 
@@ -384,29 +603,16 @@ async function fetchDailyPrices(ticker) {
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('Network error.');
   const data = await resp.json();
-  if (data['Information']) throw new Error('API rate limit reached. Alpha Vantage free tier allows 25 requests/day. Please wait a moment.');
+  if (data['Information']) throw new Error('API rate limit reached.');
   if (!data['Time Series (Daily)']) return null;
   return data['Time Series (Daily)'];
 }
 
-function findClosestDate(series, targetDate) {
-  // series is an object keyed by date string YYYY-MM-DD
-  const dates = Object.keys(series).sort();
-  // Find first date >= targetDate
-  let found = null;
-  for (const d of dates) {
-    if (d >= targetDate) { found = d; break; }
-  }
-  // If none found forward, use last available
-  if (!found) found = dates[dates.length - 1];
-  return found;
-}
-
 function getMostRecentDate(series) {
-  const dates = Object.keys(series).sort();
-  return dates[dates.length - 1];
+  return Object.keys(series).sort().pop();
 }
 
+// --- Main calculation ---
 async function calculate() {
   const ticker = document.getElementById('ticker').value.trim().toUpperCase();
   const startDate = document.getElementById('startDate').value;
@@ -424,21 +630,17 @@ async function calculate() {
 
   const minDate = new Date();
   minDate.setFullYear(minDate.getFullYear() - 20);
-  const minDateStr = minDate.toISOString().split('T')[0];
-  if (startDate < minDateStr) { setStatus('Date range too far back. Alpha Vantage free tier returns up to 20 years of monthly data.'); return; }
+  if (startDate < minDate.toISOString().split('T')[0]) {
+    setStatus('Date range too far back. Alpha Vantage free tier returns up to 20 years of monthly data.');
+    return;
+  }
 
   setLoading(true);
 
   try {
-    // Fetch monthly data for historical price
     const monthly = await fetchMonthlyPrices(ticker);
-
-    // Get monthly close for start date
-    // Alpha Vantage monthly keys are end-of-month dates
-    // Find the month matching or just after the start date
     const monthDates = Object.keys(monthly).sort();
 
-    // Determine start month key: first month-end >= startDate
     let startKey = null;
     for (const d of monthDates) {
       if (d >= startDate) { startKey = d; break; }
@@ -448,10 +650,8 @@ async function calculate() {
     const endKey = getMostRecentDate(monthly);
     const buyPrice = parseFloat(monthly[startKey]['4. close']);
     const currentPrice = parseFloat(monthly[endKey]['4. close']);
-
     if (!buyPrice || !currentPrice) throw new Error('Price data unavailable for this symbol.');
 
-    // Try to get more precise current price from daily
     let preciseCurrent = currentPrice;
     let preciseCurrentDate = endKey;
     try {
@@ -460,9 +660,7 @@ async function calculate() {
         preciseCurrentDate = getMostRecentDate(daily);
         preciseCurrent = parseFloat(daily[preciseCurrentDate]['4. close']);
       }
-    } catch (e) {
-      // daily failed, use monthly — no problem
-    }
+    } catch (e) { /* fall back to monthly */ }
 
     const shares = amount / buyPrice;
     const currentValue = shares * preciseCurrent;
@@ -470,12 +668,10 @@ async function calculate() {
     const pct = ((currentValue - amount) / amount) * 100;
     const isGain = gainLoss >= 0;
 
-    // Years held
     const ms = new Date(preciseCurrentDate) - new Date(startKey);
     const years = ms / (1000 * 60 * 60 * 24 * 365.25);
     const cagr = years > 0 ? (Math.pow(currentValue / amount, 1 / years) - 1) * 100 : 0;
 
-    // Render
     const sign = isGain ? '+' : '';
     const cls = isGain ? 'gain' : 'loss';
 
@@ -485,12 +681,24 @@ async function calculate() {
           <span class="ticker-badge">${ticker}</span>
           <span class="date-range">${fmtDate(startKey)} &rarr; ${fmtDate(preciseCurrentDate)}</span>
         </div>
-        <div class="big-number ${cls}">${sign}$${fmt(Math.abs(gainLoss))}</div>
-        <div class="current-value">Current value: $${fmt(currentValue)} &nbsp;&middot;&nbsp; Invested: $${fmt(amount)}</div>
+
+        <div class="value-pair">
+          <div class="value-block">
+            <div class="value-label">Present Value</div>
+            <div class="big-number">$${fmt(currentValue)}</div>
+            <div class="big-number-sub">from $${fmt(amount)} invested</div>
+          </div>
+          <div class="value-block">
+            <div class="value-label">Total Return</div>
+            <div class="big-number ${cls}">${sign}$${fmt(Math.abs(gainLoss))}</div>
+            <div class="big-number-sub ${cls}">${sign}${fmt(Math.abs(pct))}%</div>
+          </div>
+        </div>
+
         <div class="stats-grid">
           <div class="stat">
-            <div class="stat-label">Return</div>
-            <div class="stat-value ${cls}">${sign}${fmt(Math.abs(pct))}%</div>
+            <div class="stat-label">Ann. Return</div>
+            <div class="stat-value ${cls}">${sign}${fmt(Math.abs(cagr))}%</div>
           </div>
           <div class="stat">
             <div class="stat-label">Buy Price</div>
@@ -509,8 +717,8 @@ async function calculate() {
             <div class="stat-value">${years.toFixed(1)}</div>
           </div>
           <div class="stat">
-            <div class="stat-label">Ann. Return</div>
-            <div class="stat-value ${cls}">${sign}${fmt(Math.abs(cagr))}%</div>
+            <div class="stat-label">Multiplier</div>
+            <div class="stat-value">${(currentValue / amount).toFixed(2)}x</div>
           </div>
         </div>
       </div>
@@ -524,9 +732,9 @@ async function calculate() {
   }
 }
 
-// Allow Enter key to trigger
+// Enter key on non-ticker fields
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') calculate();
+  if (e.key === 'Enter' && document.activeElement.id !== 'ticker') calculate();
 });
 
 // Default date: 5 years ago
