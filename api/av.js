@@ -1,8 +1,8 @@
 const https = require('https');
 
 const API_KEYS = [
-  'LS6NMT89KF6VCU0X',  // your existing key
-  'OPXAPSR8VFOV71GD',
+  'OPXAPSR8VFOV71GD',  // your existing key
+  'LS6NMT89KF6VCU0X',
   // add more as needed
 ];
 
