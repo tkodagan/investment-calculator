@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Investment Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #0d0f0e;
@@ -18,6 +19,8 @@
     --gain: #b8ff57;
     --loss: #ff6b57;
     --loss-dim: #c45242;
+    --color-a: #b8ff57;
+    --color-b: #57c8ff;
     --font-display: 'DM Serif Display', Georgia, serif;
     --font-mono: 'DM Mono', 'Courier New', monospace;
   }
@@ -33,17 +36,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 60px 24px;
+    padding: 60px 24px 80px;
     background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(184,255,87,0.06) 0%, transparent 70%);
   }
 
-  header {
-    text-align: center;
-    margin-bottom: 56px;
-  }
+  header { text-align: center; margin-bottom: 56px; }
 
   .eyebrow {
-    font-family: var(--font-mono);
     font-size: 0.65rem;
     font-weight: 500;
     letter-spacing: 0.25em;
@@ -57,7 +56,6 @@
     font-size: clamp(2.4rem, 5vw, 3.8rem);
     font-weight: 400;
     line-height: 1.1;
-    color: var(--text);
     letter-spacing: -0.01em;
   }
 
@@ -72,7 +70,7 @@
 
   .card {
     width: 100%;
-    max-width: 580px;
+    max-width: 680px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -92,9 +90,7 @@
 
   .card > * { position: relative; z-index: 1; }
 
-  .field {
-    margin-bottom: 28px;
-  }
+  .field { margin-bottom: 24px; }
 
   label {
     display: block;
@@ -114,101 +110,83 @@
     color: var(--text);
     font-family: var(--font-mono);
     font-size: 1.05rem;
-    font-weight: 400;
     padding: 13px 16px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     -webkit-appearance: none;
   }
 
-  input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(184,255,87,0.08);
-  }
-
+  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,255,87,0.08); }
   input::placeholder { color: var(--muted); opacity: 0.6; }
-  input[type="text"] { text-transform: uppercase; }
 
-  /* Autocomplete */
-  .autocomplete-wrap {
-    position: relative;
+  .ticker-a label { color: var(--color-a); opacity: 0.9; }
+  .ticker-b label { color: var(--color-b); opacity: 0.9; }
+  .ticker-a input:focus { border-color: var(--color-a); box-shadow: 0 0 0 3px rgba(184,255,87,0.08); }
+  .ticker-b input:focus { border-color: var(--color-b); box-shadow: 0 0 0 3px rgba(87,200,255,0.08); }
+
+  .ticker-row-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
   }
 
-  .autocomplete-wrap input {
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 24px;
+    color: var(--muted);
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
   }
 
-  #tickerDropdown {
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-bright);
+  }
+
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-wrap input { text-transform: uppercase; }
+
+  .ticker-dropdown {
     display: none;
     position: fixed;
     background: #1a1f1a;
     border: 1px solid var(--border-bright);
     border-radius: 3px;
     z-index: 9999;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-    max-height: 280px;
     overflow-y: auto;
+    max-height: 260px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
   }
 
   .dropdown-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 11px 16px;
     cursor: pointer;
-    transition: background 0.1s;
     border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
   }
 
   .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover, .dropdown-item.active { background: rgba(184,255,87,0.07); }
 
-  .dropdown-item:hover,
-  .dropdown-item.active {
-    background: rgba(184,255,87,0.07);
-  }
-
-  .dropdown-symbol {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--text);
-    letter-spacing: 0.05em;
-    min-width: 60px;
-  }
-
-  .dropdown-name {
-    font-size: 0.72rem;
-    color: var(--muted);
-    letter-spacing: 0.02em;
-    flex: 1;
-    padding: 0 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-transform: none;
-  }
-
-  .dropdown-type {
-    font-size: 0.58rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    opacity: 0.6;
-    flex-shrink: 0;
-  }
-
-  .dropdown-searching {
-    padding: 12px 16px;
-    font-size: 0.72rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-  }
-
-  .row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
+  .dropdown-symbol { font-size: 0.9rem; font-weight: 500; color: var(--text); letter-spacing: 0.05em; min-width: 64px; }
+  .dropdown-name { font-size: 0.72rem; color: var(--muted); flex: 1; padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: none; letter-spacing: 0.02em; }
+  .dropdown-type { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); opacity: 0.5; flex-shrink: 0; }
+  .dropdown-msg { padding: 12px 16px; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; }
 
   button {
     width: 100%;
@@ -231,149 +209,9 @@
   button:active { transform: scale(0.99); }
   button:disabled { background: var(--border-bright); color: var(--muted); cursor: not-allowed; }
 
-  /* Result panel */
-  #result {
-    width: 100%;
-    max-width: 580px;
-    margin-top: 16px;
-    display: none;
-  }
-
-  .result-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 36px 40px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .result-card.gain { border-color: rgba(184,255,87,0.25); }
-  .result-card.loss { border-color: rgba(255,107,87,0.25); }
-
-  .result-card.gain::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at top left, rgba(184,255,87,0.05), transparent 60%);
-    pointer-events: none;
-  }
-
-  .result-card.loss::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at top left, rgba(255,107,87,0.05), transparent 60%);
-    pointer-events: none;
-  }
-
-  .ticker-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 28px;
-  }
-
-  .ticker-badge {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .date-range {
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-
-  /* Value display: two big numbers side by side */
-  .value-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    margin-bottom: 32px;
-    position: relative;
-  }
-
-  .value-pair::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 10%;
-    height: 80%;
-    width: 1px;
-    background: var(--border-bright);
-  }
-
-  .value-block { padding-right: 24px; }
-  .value-block:last-child { padding-right: 0; padding-left: 24px; }
-
-  .value-label {
-    font-size: 0.58rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-
-  .big-number {
-    font-family: var(--font-display);
-    font-size: clamp(1.8rem, 5vw, 2.8rem);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    color: var(--text);
-  }
-
-  .big-number.gain { color: var(--gain); }
-  .big-number.loss { color: var(--loss); }
-
-  .big-number-sub {
-    font-size: 0.72rem;
-    color: var(--muted);
-    margin-top: 6px;
-    letter-spacing: 0.04em;
-  }
-
-  .big-number-sub.gain { color: var(--accent-dim); }
-  .big-number-sub.loss { color: var(--loss-dim); }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .stat {
-    background: var(--bg);
-    padding: 16px 18px;
-  }
-
-  .stat-label {
-    font-size: 0.58rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-
-  .stat-value {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text);
-  }
-
-  .stat-value.gain { color: var(--gain); }
-  .stat-value.loss { color: var(--loss); }
-
-  /* Error / status */
   #status {
     width: 100%;
-    max-width: 580px;
+    max-width: 680px;
     margin-top: 16px;
     display: none;
     font-size: 0.75rem;
@@ -386,13 +224,128 @@
   }
 
   .loading-text {
+    display: none;
     color: var(--muted);
     font-size: 0.72rem;
     letter-spacing: 0.12em;
     text-align: center;
     padding: 20px 0;
-    display: none;
   }
+
+  #result { width: 100%; max-width: 680px; margin-top: 16px; display: none; }
+
+  /* ── Result cards ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 24px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .result-card.card-a { border-color: rgba(184,255,87,0.2); }
+  .result-card.card-a::before { background: radial-gradient(ellipse at top left, rgba(184,255,87,0.04), transparent 60%); }
+  .result-card.card-b { border-color: rgba(87,200,255,0.2); }
+  .result-card.card-b::before { background: radial-gradient(ellipse at top left, rgba(87,200,255,0.04), transparent 60%); }
+
+  .winner-badge {
+    display: inline-block;
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: rgba(184,255,87,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(184,255,87,0.22);
+    border-radius: 2px;
+    padding: 3px 8px;
+    margin-bottom: 10px;
+  }
+
+  .rc-ticker { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 3px; }
+  .card-a .rc-ticker { color: var(--color-a); }
+  .card-b .rc-ticker { color: var(--color-b); }
+
+  .rc-dates { font-size: 0.58rem; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 18px; }
+
+  .rc-present {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .rc-invested { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 14px; }
+
+  .rc-return {
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .rc-return.gain { color: var(--gain); }
+  .rc-return.loss { color: var(--loss); }
+
+  .rc-pct { font-size: 0.7rem; letter-spacing: 0.04em; margin-bottom: 18px; }
+  .rc-pct.gain { color: var(--accent-dim); }
+  .rc-pct.loss { color: var(--loss-dim); }
+
+  .mini-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .mini-stat { background: var(--bg); padding: 10px 12px; }
+  .mini-stat-label { font-size: 0.54rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .mini-stat-value { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+  .mini-stat-value.gain { color: var(--gain); }
+  .mini-stat-value.loss { color: var(--loss); }
+
+  /* ── Chart ── */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 28px 24px;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .chart-title { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+
+  .chart-legend { display: flex; gap: 16px; }
+
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; letter-spacing: 0.06em; color: var(--muted); }
+
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .chart-wrap { position: relative; height: 240px; }
 
   footer {
     margin-top: 48px;
@@ -403,14 +356,11 @@
     opacity: 0.5;
   }
 
-  @media (max-width: 480px) {
-    .card, .result-card { padding: 28px 24px; }
-    .row { grid-template-columns: 1fr; }
-    .stats-grid { grid-template-columns: 1fr; }
-    .ticker-row { flex-direction: column; align-items: flex-start; gap: 4px; }
-    .value-pair { grid-template-columns: 1fr; gap: 20px; }
-    .value-pair::after { display: none; }
-    .value-block, .value-block:last-child { padding: 0; }
+  @media (max-width: 560px) {
+    .ticker-row-inputs, .bottom-row, .compare-grid { grid-template-columns: 1fr; }
+    .card { padding: 28px 20px; }
+    .result-card { padding: 22px 18px; }
+    .chart-card { padding: 20px 16px; }
   }
 </style>
 </head>
@@ -419,21 +369,36 @@
 <header>
   <div class="eyebrow">Historical Return Calculator</div>
   <h1>What would it be<br>worth <em>today?</em></h1>
-  <p class="subtitle">Enter a ticker, a date, and an amount &mdash; the rest is math.</p>
+  <p class="subtitle">Compare two investments over the same period.</p>
 </header>
 
 <div class="card">
-  <div class="field">
-    <label>Ticker / Symbol</label>
-    <div class="autocomplete-wrap">
-      <input type="text" id="ticker" placeholder="AAPL, SPY, MSFT..." maxlength="10"
-             autocomplete="off" autocorrect="off" spellcheck="false"
-             oninput="onTickerInput(this.value)"
-             onkeydown="onTickerKeydown(event)"
-             onblur="hideDropdownDelayed()">
+  <div class="ticker-row-inputs">
+    <div class="field ticker-a">
+      <label>Ticker A</label>
+      <div class="autocomplete-wrap">
+        <input type="text" id="tickerA" placeholder="AAPL" maxlength="10"
+               autocomplete="off" autocorrect="off" spellcheck="false"
+               oninput="onTickerInput('A', this.value)"
+               onkeydown="onTickerKeydown('A', event)"
+               onblur="hideDropdownDelayed('A')">
+      </div>
+    </div>
+    <div class="field ticker-b">
+      <label>Ticker B</label>
+      <div class="autocomplete-wrap">
+        <input type="text" id="tickerB" placeholder="SPY" maxlength="10"
+               autocomplete="off" autocorrect="off" spellcheck="false"
+               oninput="onTickerInput('B', this.value)"
+               onkeydown="onTickerKeydown('B', event)"
+               onblur="hideDropdownDelayed('B')">
+      </div>
     </div>
   </div>
-  <div class="row">
+
+  <div class="divider">same investment &mdash; same period</div>
+
+  <div class="bottom-row">
     <div class="field">
       <label>Investment Date</label>
       <input type="date" id="startDate">
@@ -443,7 +408,8 @@
       <input type="number" id="amount" placeholder="10000" min="1" step="any">
     </div>
   </div>
-  <button id="calcBtn" onclick="calculate()">Calculate Return</button>
+
+  <button id="calcBtn" onclick="calculate()">Compare Returns</button>
 </div>
 
 <div class="loading-text" id="loadingText">Fetching price data&hellip;</div>
@@ -454,263 +420,259 @@
 
 <script>
 const API_KEY = 'LS6NMT89KF6VCU0X';
+let growthChart = null;
 
-// --- Formatting ---
 function fmt(n) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-
 function fmtDate(dateStr) {
   const [y, m, d] = dateStr.split('-');
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
 }
+function fmtShort(dateStr) {
+  const [y, m] = dateStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m)-1]} '${y.slice(2)}`;
+}
 
-// --- Status / loading ---
 function setStatus(msg) {
   const el = document.getElementById('status');
   el.textContent = msg;
   el.style.display = msg ? 'block' : 'none';
 }
-
 function setLoading(on) {
   document.getElementById('loadingText').style.display = on ? 'block' : 'none';
   document.getElementById('calcBtn').disabled = on;
-  document.getElementById('calcBtn').textContent = on ? 'Fetching data...' : 'Calculate Return';
+  document.getElementById('calcBtn').textContent = on ? 'Fetching data...' : 'Compare Returns';
 }
 
-// --- Autocomplete ---
-// --- Curated ticker list (local, no API calls) ---
+// ── Ticker list ──
 const TICKERS = [
-  // Major ETFs
-  { s: 'SPY',  n: 'SPDR S&P 500 ETF Trust',           t: 'ETF' },
-  { s: 'QQQ',  n: 'Invesco QQQ Trust (Nasdaq-100)',    t: 'ETF' },
-  { s: 'VTI',  n: 'Vanguard Total Stock Market ETF',   t: 'ETF' },
-  { s: 'VOO',  n: 'Vanguard S&P 500 ETF',              t: 'ETF' },
-  { s: 'IWM',  n: 'iShares Russell 2000 ETF',          t: 'ETF' },
-  { s: 'DIA',  n: 'SPDR Dow Jones Industrial Average', t: 'ETF' },
-  { s: 'VNQ',  n: 'Vanguard Real Estate ETF',          t: 'ETF' },
-  { s: 'GLD',  n: 'SPDR Gold Shares',                  t: 'ETF' },
-  { s: 'SLV',  n: 'iShares Silver Trust',              t: 'ETF' },
-  { s: 'TLT',  n: 'iShares 20+ Year Treasury Bond ETF',t: 'ETF' },
-  { s: 'AGG',  n: 'iShares Core U.S. Aggregate Bond',  t: 'ETF' },
-  { s: 'VEA',  n: 'Vanguard FTSE Developed Markets',   t: 'ETF' },
-  { s: 'EEM',  n: 'iShares MSCI Emerging Markets ETF', t: 'ETF' },
-  { s: 'XLF',  n: 'Financial Select Sector SPDR',      t: 'ETF' },
-  { s: 'XLK',  n: 'Technology Select Sector SPDR',     t: 'ETF' },
-  { s: 'XLE',  n: 'Energy Select Sector SPDR',         t: 'ETF' },
-  { s: 'ARKK', n: 'ARK Innovation ETF',                t: 'ETF' },
-  { s: 'SCHD', n: 'Schwab US Dividend Equity ETF',     t: 'ETF' },
-  { s: 'VGT',  n: 'Vanguard Information Technology',   t: 'ETF' },
-  { s: 'JEPI', n: 'JPMorgan Equity Premium Income ETF',t: 'ETF' },
-  // Mega-cap stocks
-  { s: 'AAPL', n: 'Apple Inc.',                        t: 'Stock' },
-  { s: 'MSFT', n: 'Microsoft Corporation',             t: 'Stock' },
-  { s: 'GOOGL',n: 'Alphabet Inc. (Class A)',           t: 'Stock' },
-  { s: 'GOOG', n: 'Alphabet Inc. (Class C)',           t: 'Stock' },
-  { s: 'AMZN', n: 'Amazon.com Inc.',                   t: 'Stock' },
-  { s: 'NVDA', n: 'NVIDIA Corporation',                t: 'Stock' },
-  { s: 'META', n: 'Meta Platforms Inc.',               t: 'Stock' },
-  { s: 'TSLA', n: 'Tesla Inc.',                        t: 'Stock' },
-  { s: 'BRK.B',n: 'Berkshire Hathaway Inc. (Class B)', t: 'Stock' },
-  { s: 'BRK.A',n: 'Berkshire Hathaway Inc. (Class A)', t: 'Stock' },
-  { s: 'JPM',  n: 'JPMorgan Chase & Co.',              t: 'Stock' },
-  { s: 'V',    n: 'Visa Inc.',                         t: 'Stock' },
-  { s: 'MA',   n: 'Mastercard Incorporated',           t: 'Stock' },
-  { s: 'UNH',  n: 'UnitedHealth Group Inc.',           t: 'Stock' },
-  { s: 'JNJ',  n: 'Johnson & Johnson',                 t: 'Stock' },
-  { s: 'WMT',  n: 'Walmart Inc.',                      t: 'Stock' },
-  { s: 'PG',   n: 'Procter & Gamble Co.',              t: 'Stock' },
-  { s: 'HD',   n: 'The Home Depot Inc.',               t: 'Stock' },
-  { s: 'BAC',  n: 'Bank of America Corporation',       t: 'Stock' },
-  { s: 'XOM',  n: 'Exxon Mobil Corporation',           t: 'Stock' },
-  { s: 'CVX',  n: 'Chevron Corporation',               t: 'Stock' },
-  { s: 'ABBV', n: 'AbbVie Inc.',                       t: 'Stock' },
-  { s: 'KO',   n: 'The Coca-Cola Company',             t: 'Stock' },
-  { s: 'PEP',  n: 'PepsiCo Inc.',                      t: 'Stock' },
-  { s: 'AVGO', n: 'Broadcom Inc.',                     t: 'Stock' },
-  { s: 'COST', n: 'Costco Wholesale Corporation',      t: 'Stock' },
-  { s: 'MRK',  n: 'Merck & Co. Inc.',                  t: 'Stock' },
-  { s: 'LLY',  n: 'Eli Lilly and Company',             t: 'Stock' },
-  { s: 'TMO',  n: 'Thermo Fisher Scientific Inc.',     t: 'Stock' },
-  { s: 'ORCL', n: 'Oracle Corporation',                t: 'Stock' },
-  { s: 'CRM',  n: 'Salesforce Inc.',                   t: 'Stock' },
-  { s: 'NFLX', n: 'Netflix Inc.',                      t: 'Stock' },
-  { s: 'ADBE', n: 'Adobe Inc.',                        t: 'Stock' },
-  { s: 'AMD',  n: 'Advanced Micro Devices Inc.',       t: 'Stock' },
-  { s: 'INTC', n: 'Intel Corporation',                 t: 'Stock' },
-  { s: 'QCOM', n: 'QUALCOMM Incorporated',             t: 'Stock' },
-  { s: 'DIS',  n: 'The Walt Disney Company',           t: 'Stock' },
-  { s: 'PYPL', n: 'PayPal Holdings Inc.',              t: 'Stock' },
-  { s: 'UBER', n: 'Uber Technologies Inc.',            t: 'Stock' },
-  { s: 'LYFT', n: 'Lyft Inc.',                         t: 'Stock' },
-  { s: 'SPOT', n: 'Spotify Technology S.A.',           t: 'Stock' },
-  { s: 'SQ',   n: 'Block Inc.',                        t: 'Stock' },
-  { s: 'SHOP', n: 'Shopify Inc.',                      t: 'Stock' },
-  { s: 'SNAP', n: 'Snap Inc.',                         t: 'Stock' },
-  { s: 'TWTR', n: 'Twitter / X Corp.',                 t: 'Stock' },
-  { s: 'COIN', n: 'Coinbase Global Inc.',              t: 'Stock' },
-  { s: 'HOOD', n: 'Robinhood Markets Inc.',            t: 'Stock' },
-  { s: 'PLTR', n: 'Palantir Technologies Inc.',        t: 'Stock' },
-  { s: 'NET',  n: 'Cloudflare Inc.',                   t: 'Stock' },
-  { s: 'ZM',   n: 'Zoom Video Communications',         t: 'Stock' },
-  { s: 'ABNB', n: 'Airbnb Inc.',                       t: 'Stock' },
-  { s: 'RBLX', n: 'Roblox Corporation',                t: 'Stock' },
-  { s: 'RIVN', n: 'Rivian Automotive Inc.',            t: 'Stock' },
-  { s: 'F',    n: 'Ford Motor Company',                t: 'Stock' },
-  { s: 'GM',   n: 'General Motors Company',            t: 'Stock' },
-  { s: 'GS',   n: 'Goldman Sachs Group Inc.',          t: 'Stock' },
-  { s: 'MS',   n: 'Morgan Stanley',                    t: 'Stock' },
-  { s: 'C',    n: 'Citigroup Inc.',                    t: 'Stock' },
-  { s: 'WFC',  n: 'Wells Fargo & Company',             t: 'Stock' },
-  { s: 'T',    n: 'AT&T Inc.',                         t: 'Stock' },
-  { s: 'VZ',   n: 'Verizon Communications Inc.',       t: 'Stock' },
-  { s: 'TMUS', n: 'T-Mobile US Inc.',                  t: 'Stock' },
-  { s: 'BA',   n: 'The Boeing Company',                t: 'Stock' },
-  { s: 'CAT',  n: 'Caterpillar Inc.',                  t: 'Stock' },
-  { s: 'DE',   n: 'Deere & Company',                   t: 'Stock' },
-  { s: 'MMM',  n: '3M Company',                        t: 'Stock' },
-  { s: 'GE',   n: 'GE Aerospace',                      t: 'Stock' },
-  { s: 'NKE',  n: 'Nike Inc.',                         t: 'Stock' },
-  { s: 'MCD',  n: "McDonald's Corporation",            t: 'Stock' },
-  { s: 'SBUX', n: 'Starbucks Corporation',             t: 'Stock' },
-  { s: 'TGT',  n: 'Target Corporation',                t: 'Stock' },
-  { s: 'AMGN', n: 'Amgen Inc.',                        t: 'Stock' },
-  { s: 'GILD', n: 'Gilead Sciences Inc.',              t: 'Stock' },
-  { s: 'BMY',  n: 'Bristol-Myers Squibb Company',      t: 'Stock' },
-  { s: 'PFE',  n: 'Pfizer Inc.',                       t: 'Stock' },
-  { s: 'MRNA', n: 'Moderna Inc.',                      t: 'Stock' },
+  { s:'SPY',  n:'SPDR S&P 500 ETF Trust',             t:'ETF'   },
+  { s:'QQQ',  n:'Invesco QQQ Trust (Nasdaq-100)',      t:'ETF'   },
+  { s:'VTI',  n:'Vanguard Total Stock Market ETF',     t:'ETF'   },
+  { s:'VOO',  n:'Vanguard S&P 500 ETF',                t:'ETF'   },
+  { s:'IWM',  n:'iShares Russell 2000 ETF',            t:'ETF'   },
+  { s:'DIA',  n:'SPDR Dow Jones Industrial Average',   t:'ETF'   },
+  { s:'GLD',  n:'SPDR Gold Shares',                    t:'ETF'   },
+  { s:'SLV',  n:'iShares Silver Trust',                t:'ETF'   },
+  { s:'TLT',  n:'iShares 20+ Year Treasury Bond ETF',  t:'ETF'   },
+  { s:'AGG',  n:'iShares Core U.S. Aggregate Bond',    t:'ETF'   },
+  { s:'VEA',  n:'Vanguard FTSE Developed Markets',     t:'ETF'   },
+  { s:'EEM',  n:'iShares MSCI Emerging Markets ETF',   t:'ETF'   },
+  { s:'XLF',  n:'Financial Select Sector SPDR',        t:'ETF'   },
+  { s:'XLK',  n:'Technology Select Sector SPDR',       t:'ETF'   },
+  { s:'XLE',  n:'Energy Select Sector SPDR',           t:'ETF'   },
+  { s:'ARKK', n:'ARK Innovation ETF',                  t:'ETF'   },
+  { s:'SCHD', n:'Schwab US Dividend Equity ETF',       t:'ETF'   },
+  { s:'VGT',  n:'Vanguard Information Technology',     t:'ETF'   },
+  { s:'JEPI', n:'JPMorgan Equity Premium Income ETF',  t:'ETF'   },
+  { s:'VNQ',  n:'Vanguard Real Estate ETF',            t:'ETF'   },
+  { s:'AAPL', n:'Apple Inc.',                          t:'Stock' },
+  { s:'MSFT', n:'Microsoft Corporation',               t:'Stock' },
+  { s:'GOOGL',n:'Alphabet Inc. (Class A)',             t:'Stock' },
+  { s:'GOOG', n:'Alphabet Inc. (Class C)',             t:'Stock' },
+  { s:'AMZN', n:'Amazon.com Inc.',                     t:'Stock' },
+  { s:'NVDA', n:'NVIDIA Corporation',                  t:'Stock' },
+  { s:'META', n:'Meta Platforms Inc.',                 t:'Stock' },
+  { s:'TSLA', n:'Tesla Inc.',                          t:'Stock' },
+  { s:'BRK.B',n:'Berkshire Hathaway Inc. (Class B)',   t:'Stock' },
+  { s:'BRK.A',n:'Berkshire Hathaway Inc. (Class A)',   t:'Stock' },
+  { s:'JPM',  n:'JPMorgan Chase & Co.',                t:'Stock' },
+  { s:'V',    n:'Visa Inc.',                           t:'Stock' },
+  { s:'MA',   n:'Mastercard Incorporated',             t:'Stock' },
+  { s:'UNH',  n:'UnitedHealth Group Inc.',             t:'Stock' },
+  { s:'JNJ',  n:'Johnson & Johnson',                   t:'Stock' },
+  { s:'WMT',  n:'Walmart Inc.',                        t:'Stock' },
+  { s:'PG',   n:'Procter & Gamble Co.',                t:'Stock' },
+  { s:'HD',   n:'The Home Depot Inc.',                 t:'Stock' },
+  { s:'BAC',  n:'Bank of America Corporation',         t:'Stock' },
+  { s:'XOM',  n:'Exxon Mobil Corporation',             t:'Stock' },
+  { s:'CVX',  n:'Chevron Corporation',                 t:'Stock' },
+  { s:'ABBV', n:'AbbVie Inc.',                         t:'Stock' },
+  { s:'KO',   n:'The Coca-Cola Company',               t:'Stock' },
+  { s:'PEP',  n:'PepsiCo Inc.',                        t:'Stock' },
+  { s:'AVGO', n:'Broadcom Inc.',                       t:'Stock' },
+  { s:'COST', n:'Costco Wholesale Corporation',        t:'Stock' },
+  { s:'MRK',  n:'Merck & Co. Inc.',                    t:'Stock' },
+  { s:'LLY',  n:'Eli Lilly and Company',               t:'Stock' },
+  { s:'ORCL', n:'Oracle Corporation',                  t:'Stock' },
+  { s:'CRM',  n:'Salesforce Inc.',                     t:'Stock' },
+  { s:'NFLX', n:'Netflix Inc.',                        t:'Stock' },
+  { s:'ADBE', n:'Adobe Inc.',                          t:'Stock' },
+  { s:'AMD',  n:'Advanced Micro Devices Inc.',         t:'Stock' },
+  { s:'INTC', n:'Intel Corporation',                   t:'Stock' },
+  { s:'QCOM', n:'QUALCOMM Incorporated',               t:'Stock' },
+  { s:'DIS',  n:'The Walt Disney Company',             t:'Stock' },
+  { s:'PYPL', n:'PayPal Holdings Inc.',                t:'Stock' },
+  { s:'UBER', n:'Uber Technologies Inc.',              t:'Stock' },
+  { s:'SPOT', n:'Spotify Technology S.A.',             t:'Stock' },
+  { s:'SQ',   n:'Block Inc.',                          t:'Stock' },
+  { s:'SHOP', n:'Shopify Inc.',                        t:'Stock' },
+  { s:'SNAP', n:'Snap Inc.',                           t:'Stock' },
+  { s:'COIN', n:'Coinbase Global Inc.',                t:'Stock' },
+  { s:'PLTR', n:'Palantir Technologies Inc.',          t:'Stock' },
+  { s:'NET',  n:'Cloudflare Inc.',                     t:'Stock' },
+  { s:'ZM',   n:'Zoom Video Communications',           t:'Stock' },
+  { s:'ABNB', n:'Airbnb Inc.',                         t:'Stock' },
+  { s:'RIVN', n:'Rivian Automotive Inc.',              t:'Stock' },
+  { s:'F',    n:'Ford Motor Company',                  t:'Stock' },
+  { s:'GM',   n:'General Motors Company',              t:'Stock' },
+  { s:'GS',   n:'Goldman Sachs Group Inc.',            t:'Stock' },
+  { s:'MS',   n:'Morgan Stanley',                      t:'Stock' },
+  { s:'C',    n:'Citigroup Inc.',                      t:'Stock' },
+  { s:'WFC',  n:'Wells Fargo & Company',               t:'Stock' },
+  { s:'T',    n:'AT&T Inc.',                           t:'Stock' },
+  { s:'VZ',   n:'Verizon Communications Inc.',         t:'Stock' },
+  { s:'TMUS', n:'T-Mobile US Inc.',                    t:'Stock' },
+  { s:'BA',   n:'The Boeing Company',                  t:'Stock' },
+  { s:'CAT',  n:'Caterpillar Inc.',                    t:'Stock' },
+  { s:'DE',   n:'Deere & Company',                     t:'Stock' },
+  { s:'GE',   n:'GE Aerospace',                        t:'Stock' },
+  { s:'NKE',  n:'Nike Inc.',                           t:'Stock' },
+  { s:'MCD',  n:"McDonald's Corporation",              t:'Stock' },
+  { s:'SBUX', n:'Starbucks Corporation',               t:'Stock' },
+  { s:'TGT',  n:'Target Corporation',                  t:'Stock' },
+  { s:'AMGN', n:'Amgen Inc.',                          t:'Stock' },
+  { s:'GILD', n:'Gilead Sciences Inc.',                t:'Stock' },
+  { s:'PFE',  n:'Pfizer Inc.',                         t:'Stock' },
+  { s:'MRNA', n:'Moderna Inc.',                        t:'Stock' },
 ];
 
-function onTickerInput(val) {
+const ddState = {
+  A: { items: [], activeIndex: -1 },
+  B: { items: [], activeIndex: -1 },
+};
+
+function onTickerInput(slot, val) {
   const q = val.trim().toUpperCase();
-  if (q.length < 2) { hideDropdown(); return; }
-
-  const matches = TICKERS.filter(t =>
-    t.s.startsWith(q) || t.n.toUpperCase().includes(q)
-  ).slice(0, 8);
-
-  positionDropdown();
-  const dropdown = document.getElementById('tickerDropdown');
-  dropdownItems = matches;
-  activeIndex = -1;
-
+  if (q.length < 2) { hideDropdown(slot); return; }
+  const matches = TICKERS.filter(t => t.s.startsWith(q) || t.n.toUpperCase().includes(q)).slice(0, 8);
+  ddState[slot].items = matches;
+  ddState[slot].activeIndex = -1;
+  const dd = document.getElementById('dropdown' + slot);
+  positionDropdown(slot);
   if (matches.length === 0) {
-    dropdown.innerHTML = '<div class="dropdown-searching">No matches &mdash; type the full ticker symbol</div>';
-    dropdown.style.display = 'block';
-    return;
+    dd.innerHTML = '<div class="dropdown-msg">No matches &mdash; type the full symbol</div>';
+  } else {
+    dd.innerHTML = matches.map((m, i) => `
+      <div class="dropdown-item" data-index="${i}" onmousedown="selectTicker('${slot}', ${i})">
+        <span class="dropdown-symbol">${m.s}</span>
+        <span class="dropdown-name">${m.n}</span>
+        <span class="dropdown-type">${m.t}</span>
+      </div>`).join('');
   }
-
-  dropdown.innerHTML = matches.map((m, i) => `
-    <div class="dropdown-item" data-index="${i}" onmousedown="selectTicker(${i})">
-      <span class="dropdown-symbol">${m.s}</span>
-      <span class="dropdown-name">${m.n}</span>
-      <span class="dropdown-type">${m.t}</span>
-    </div>
-  `).join('');
-  dropdown.style.display = 'block';
+  dd.style.display = 'block';
 }
 
-function positionDropdown() {
-  const input = document.getElementById('ticker');
+function positionDropdown(slot) {
+  const input = document.getElementById('ticker' + slot);
+  const dd = document.getElementById('dropdown' + slot);
   const rect = input.getBoundingClientRect();
-  const dropdown = document.getElementById('tickerDropdown');
-  dropdown.style.top = (rect.bottom + 4) + 'px';
-  dropdown.style.left = rect.left + 'px';
-  dropdown.style.width = rect.width + 'px';
+  dd.style.top = (rect.bottom + 4) + 'px';
+  dd.style.left = rect.left + 'px';
+  dd.style.width = rect.width + 'px';
 }
 
-function selectTicker(index) {
-  const item = dropdownItems[index];
+function selectTicker(slot, index) {
+  const item = ddState[slot].items[index];
   if (!item) return;
-  const input = document.getElementById('ticker');
-  input.value = item.s;
-  hideDropdown();
-  document.getElementById('startDate').focus();
+  document.getElementById('ticker' + slot).value = item.s;
+  hideDropdown(slot);
+  if (slot === 'A') document.getElementById('tickerB').focus();
+  else document.getElementById('startDate').focus();
 }
 
-function hideDropdown() {
-  const dropdown = document.getElementById('tickerDropdown');
-  dropdown.style.display = 'none';
-  dropdownItems = [];
-  activeIndex = -1;
+function hideDropdown(slot) {
+  document.getElementById('dropdown' + slot).style.display = 'none';
+  ddState[slot].items = [];
+  ddState[slot].activeIndex = -1;
 }
 
-function hideDropdownDelayed() {
-  // Delay so mousedown on item fires first
-  setTimeout(hideDropdown, 200);
+function hideDropdownDelayed(slot) {
+  setTimeout(() => hideDropdown(slot), 200);
 }
 
-function onTickerKeydown(e) {
-  const dropdown = document.getElementById('tickerDropdown');
-  if (dropdown.style.display === 'none') return;
-
-  const items = dropdown.querySelectorAll('.dropdown-item');
+function onTickerKeydown(slot, e) {
+  const dd = document.getElementById('dropdown' + slot);
+  if (dd.style.display === 'none') return;
+  const items = dd.querySelectorAll('.dropdown-item');
+  const state = ddState[slot];
   if (e.key === 'ArrowDown') {
     e.preventDefault();
-    activeIndex = Math.min(activeIndex + 1, items.length - 1);
-    updateActiveItem(items);
+    state.activeIndex = Math.min(state.activeIndex + 1, items.length - 1);
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    activeIndex = Math.max(activeIndex - 1, -1);
-    updateActiveItem(items);
+    state.activeIndex = Math.max(state.activeIndex - 1, -1);
   } else if (e.key === 'Enter') {
-    if (activeIndex >= 0 && activeIndex < dropdownItems.length) {
-      e.preventDefault();
-      selectTicker(activeIndex);
-    } else {
-      hideDropdown();
-      calculate();
-    }
+    if (state.activeIndex >= 0) { e.preventDefault(); selectTicker(slot, state.activeIndex); }
+    else { hideDropdown(slot); }
+    return;
   } else if (e.key === 'Escape') {
-    hideDropdown();
+    hideDropdown(slot); return;
   }
+  items.forEach((el, i) => el.classList.toggle('active', i === state.activeIndex));
 }
 
-function updateActiveItem(items) {
-  items.forEach((el, i) => {
-    el.classList.toggle('active', i === activeIndex);
+window.addEventListener('scroll', () => {
+  ['A','B'].forEach(s => {
+    if (document.getElementById('dropdown' + s).style.display !== 'none') positionDropdown(s);
   });
-}
+}, true);
+window.addEventListener('resize', () => {
+  ['A','B'].forEach(s => {
+    if (document.getElementById('dropdown' + s).style.display !== 'none') positionDropdown(s);
+  });
+});
 
-// --- Price fetching ---
-async function fetchMonthlyPrices(ticker) {
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}&apikey=${API_KEY}`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error('Network error fetching price data.');
-  const data = await resp.json();
-  if (data['Information']) throw new Error('API rate limit reached. Alpha Vantage free tier allows 25 requests/day. Please wait a moment.');
-  if (data['Error Message']) throw new Error(`Symbol "${ticker}" not found. Check the ticker and try again.`);
-  if (!data['Monthly Adjusted Time Series']) throw new Error('Unexpected API response. The symbol may be invalid.');
-  return data['Monthly Adjusted Time Series'];
-}
-
-async function fetchDailyPrices(ticker) {
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${ticker}&outputsize=compact&apikey=${API_KEY}`;
+// ── API ──
+async function fetchMonthly(ticker) {
+  const url = `/api/av?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}&apikey=${API_KEY}`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('Network error.');
   const data = await resp.json();
-  if (data['Information']) throw new Error('API rate limit reached.');
+  if (data['Information']) throw new Error('API rate limit reached (25/day on free tier).');
+  if (data['Error Message']) throw new Error(`"${ticker}" not found. Check the symbol.`);
+  if (!data['Monthly Adjusted Time Series']) throw new Error(`No data returned for "${ticker}".`);
+  return data['Monthly Adjusted Time Series'];
+}
+
+async function fetchDaily(ticker) {
+  const url = `/api/av?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${ticker}&outputsize=compact&apikey=${API_KEY}`;
+  const resp = await fetch(url);
+  if (!resp.ok) return null;
+  const data = await resp.json();
   if (!data['Time Series (Daily)']) return null;
   return data['Time Series (Daily)'];
 }
 
-function getMostRecentDate(series) {
-  return Object.keys(series).sort().pop();
+function lastKey(obj) { return Object.keys(obj).sort().pop(); }
+
+function alignSeries(seriesMap, dates) {
+  const result = [];
+  let last = null;
+  for (const d of dates) {
+    if (seriesMap[d] !== undefined) last = seriesMap[d];
+    result.push(last);
+  }
+  return result;
 }
 
-// --- Main calculation ---
+// ── Calculate ──
 async function calculate() {
-  const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+  const tA = document.getElementById('tickerA').value.trim().toUpperCase();
+  const tB = document.getElementById('tickerB').value.trim().toUpperCase();
   const startDate = document.getElementById('startDate').value;
   const amount = parseFloat(document.getElementById('amount').value);
 
   document.getElementById('result').style.display = 'none';
   setStatus('');
 
-  if (!ticker) { setStatus('Please enter a ticker symbol.'); return; }
+  if (!tA) { setStatus('Please enter Ticker A.'); return; }
+  if (!tB) { setStatus('Please enter Ticker B.'); return; }
   if (!startDate) { setStatus('Please select a start date.'); return; }
-  if (!amount || amount <= 0) { setStatus('Please enter a valid investment amount.'); return; }
+  if (!amount || amount <= 0) { setStatus('Please enter a valid amount.'); return; }
 
   const today = new Date().toISOString().split('T')[0];
   if (startDate >= today) { setStatus('Start date must be in the past.'); return; }
@@ -718,129 +680,220 @@ async function calculate() {
   const minDate = new Date();
   minDate.setFullYear(minDate.getFullYear() - 20);
   if (startDate < minDate.toISOString().split('T')[0]) {
-    setStatus('Date range too far back. Alpha Vantage free tier returns up to 20 years of monthly data.');
-    return;
+    setStatus('Date range too far back (20 year max on free tier).'); return;
   }
 
   setLoading(true);
 
   try {
-    const monthly = await fetchMonthlyPrices(ticker);
-    const monthDates = Object.keys(monthly).sort();
+    const [monthlyA, monthlyB] = await Promise.all([fetchMonthly(tA), fetchMonthly(tB)]);
 
-    let startKey = null;
-    for (const d of monthDates) {
-      if (d >= startDate) { startKey = d; break; }
+    function resolveStart(monthly, sd) {
+      const keys = Object.keys(monthly).sort();
+      for (const k of keys) { if (k >= sd) return k; }
+      return null;
     }
-    if (!startKey) throw new Error('No price data available for or after your start date. The stock may not have existed then.');
 
-    const endKey = getMostRecentDate(monthly);
-    const buyPrice = parseFloat(monthly[startKey]['5. adjusted close']);
-    const currentPrice = parseFloat(monthly[endKey]['5. adjusted close']);
-    if (!buyPrice || !currentPrice) throw new Error('Price data unavailable for this symbol.');
+    const startA = resolveStart(monthlyA, startDate);
+    const startB = resolveStart(monthlyB, startDate);
+    if (!startA) throw new Error(`No data for ${tA} at or after your start date.`);
+    if (!startB) throw new Error(`No data for ${tB} at or after your start date.`);
 
-    let preciseCurrent = currentPrice;
-    let preciseCurrentDate = endKey;
+    // Use the later of the two start keys so both series begin on the same month
+    const sharedStart = startA > startB ? startA : startB;
+
+    const endA = lastKey(monthlyA);
+    const endB = lastKey(monthlyB);
+    const sharedEnd = endA > endB ? endA : endB;
+
+    const buyA = parseFloat(monthlyA[sharedStart]['5. adjusted close']);
+    const buyB = parseFloat(monthlyB[sharedStart]['5. adjusted close']);
+
+    // Current price: try daily, fall back to monthly
+    let curA = parseFloat(monthlyA[endA]['5. adjusted close']), curDateA = endA;
+    let curB = parseFloat(monthlyB[endB]['5. adjusted close']), curDateB = endB;
     try {
-      const daily = await fetchDailyPrices(ticker);
-      if (daily) {
-        preciseCurrentDate = getMostRecentDate(daily);
-        preciseCurrent = parseFloat(daily[preciseCurrentDate]['4. close']);
-      }
-    } catch (e) { /* fall back to monthly */ }
+      const [dA, dB] = await Promise.all([fetchDaily(tA), fetchDaily(tB)]);
+      if (dA) { curDateA = lastKey(dA); curA = parseFloat(dA[curDateA]['4. close']); }
+      if (dB) { curDateB = lastKey(dB); curB = parseFloat(dB[curDateB]['4. close']); }
+    } catch(e) { /* monthly fallback */ }
 
-    const shares = amount / buyPrice;
-    const currentValue = shares * preciseCurrent;
-    const gainLoss = currentValue - amount;
-    const pct = ((currentValue - amount) / amount) * 100;
-    const isGain = gainLoss >= 0;
+    // Build portfolio value maps for chart
+    function buildMap(monthly, start, end, amt, buy) {
+      const keys = Object.keys(monthly).sort().filter(d => d >= start && d <= end);
+      const map = {};
+      keys.forEach(d => { map[d] = (amt / buy) * parseFloat(monthly[d]['5. adjusted close']); });
+      return map;
+    }
 
-    const ms = new Date(preciseCurrentDate) - new Date(startKey);
-    const years = ms / (1000 * 60 * 60 * 24 * 365.25);
-    const cagr = years > 0 ? (Math.pow(currentValue / amount, 1 / years) - 1) * 100 : 0;
+    const mapA = buildMap(monthlyA, sharedStart, sharedEnd, amount, buyA);
+    const mapB = buildMap(monthlyB, sharedStart, sharedEnd, amount, buyB);
 
-    const sign = isGain ? '+' : '';
-    const cls = isGain ? 'gain' : 'loss';
+    const allDates = [...new Set([...Object.keys(mapA), ...Object.keys(mapB)])].sort();
+    const valuesA = alignSeries(mapA, allDates);
+    const valuesB = alignSeries(mapB, allDates);
+
+    // Final stats
+    const finalA = (amount / buyA) * curA;
+    const finalB = (amount / buyB) * curB;
+    const gainA = finalA - amount, gainB = finalB - amount;
+    const pctA = (gainA / amount) * 100, pctB = (gainB / amount) * 100;
+    const yearsA = (new Date(curDateA) - new Date(sharedStart)) / (1000*60*60*24*365.25);
+    const yearsB = (new Date(curDateB) - new Date(sharedStart)) / (1000*60*60*24*365.25);
+    const cagrA = yearsA > 0 ? (Math.pow(finalA/amount, 1/yearsA) - 1)*100 : 0;
+    const cagrB = yearsB > 0 ? (Math.pow(finalB/amount, 1/yearsB) - 1)*100 : 0;
+    const winnerIsA = finalA >= finalB;
+
+    function cardHTML(ticker, slot, startKey, curDate, curPrice, buyPrice, finalVal, gain, pct, cagr, isWinner) {
+      const isGain = gain >= 0;
+      const sign = isGain ? '+' : '';
+      const cls = isGain ? 'gain' : 'loss';
+      return `
+        <div class="result-card card-${slot.toLowerCase()}">
+          ${isWinner ? '<div class="winner-badge">&#9650; Winner</div>' : '<div style="height:21px;margin-bottom:10px"></div>'}
+          <div class="rc-ticker">${ticker}</div>
+          <div class="rc-dates">${fmtDate(startKey)} &rarr; ${fmtDate(curDate)}</div>
+          <div class="rc-present">$${fmt(finalVal)}</div>
+          <div class="rc-invested">from $${fmt(amount)} invested</div>
+          <div class="rc-return ${cls}">${sign}$${fmt(Math.abs(gain))}</div>
+          <div class="rc-pct ${cls}">${sign}${fmt(Math.abs(pct))}%</div>
+          <div class="mini-stats">
+            <div class="mini-stat">
+              <div class="mini-stat-label">Ann. Return</div>
+              <div class="mini-stat-value ${cls}">${sign}${fmt(Math.abs(cagr))}%</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label">Multiplier</div>
+              <div class="mini-stat-value">${(finalVal/amount).toFixed(2)}x</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label">Buy Price</div>
+              <div class="mini-stat-value">$${fmt(buyPrice)}</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label">Cur. Price</div>
+              <div class="mini-stat-value">$${fmt(curPrice)}</div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // Thin chart labels
+    const step = Math.max(1, Math.floor(allDates.length / 10));
+    const chartLabels = allDates.map((d, i) =>
+      (i % step === 0 || i === allDates.length - 1) ? fmtShort(d) : '');
 
     document.getElementById('result').innerHTML = `
-      <div class="result-card ${cls}">
-        <div class="ticker-row">
-          <span class="ticker-badge">${ticker}</span>
-          <span class="date-range">${fmtDate(startKey)} &rarr; ${fmtDate(preciseCurrentDate)}</span>
-        </div>
-
-        <div class="value-pair">
-          <div class="value-block">
-            <div class="value-label">Present Value</div>
-            <div class="big-number">$${fmt(currentValue)}</div>
-            <div class="big-number-sub">from $${fmt(amount)} invested</div>
-          </div>
-          <div class="value-block">
-            <div class="value-label">Total Return</div>
-            <div class="big-number ${cls}">${sign}$${fmt(Math.abs(gainLoss))}</div>
-            <div class="big-number-sub ${cls}">${sign}${fmt(Math.abs(pct))}%</div>
-          </div>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat">
-            <div class="stat-label">Ann. Return</div>
-            <div class="stat-value ${cls}">${sign}${fmt(Math.abs(cagr))}%</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Buy Price</div>
-            <div class="stat-value">$${fmt(buyPrice)}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Current Price</div>
-            <div class="stat-value">$${fmt(preciseCurrent)}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Shares</div>
-            <div class="stat-value">${fmt(shares)}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Years Held</div>
-            <div class="stat-value">${years.toFixed(1)}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Multiplier</div>
-            <div class="stat-value">${(currentValue / amount).toFixed(2)}x</div>
-          </div>
-        </div>
+      <div class="compare-grid">
+        ${cardHTML(tA, 'A', sharedStart, curDateA, curA, buyA, finalA, gainA, pctA, cagrA, winnerIsA)}
+        ${cardHTML(tB, 'B', sharedStart, curDateB, curB, buyB, finalB, gainB, pctB, cagrB, !winnerIsA)}
       </div>
-    `;
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Portfolio Value Over Time</span>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#b8ff57"></div>${tA}</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#57c8ff"></div>${tB}</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
+      </div>`;
+
     document.getElementById('result').style.display = 'block';
 
-  } catch (err) {
+    if (growthChart) { growthChart.destroy(); growthChart = null; }
+
+    growthChart = new Chart(document.getElementById('growthChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: tA,
+            data: valuesA,
+            borderColor: '#b8ff57',
+            backgroundColor: 'rgba(184,255,87,0.05)',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.3,
+            fill: true,
+          },
+          {
+            label: tB,
+            data: valuesB,
+            borderColor: '#57c8ff',
+            backgroundColor: 'rgba(87,200,255,0.05)',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.3,
+            fill: true,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1f1a',
+            borderColor: '#2a302a',
+            borderWidth: 1,
+            titleColor: '#5a635a',
+            bodyColor: '#e8ede8',
+            titleFont: { family: "'DM Mono', monospace", size: 11 },
+            bodyFont: { family: "'DM Mono', monospace", size: 12 },
+            padding: 12,
+            callbacks: {
+              title: (items) => allDates[items[0].dataIndex] ? fmtDate(allDates[items[0].dataIndex]) : '',
+              label: (item) => ` ${item.dataset.label}   $${fmt(item.raw)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255,255,255,0.03)' },
+            ticks: { color: '#5a635a', font: { family: "'DM Mono', monospace", size: 10 }, maxRotation: 0 },
+            border: { color: '#1e221e' }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#5a635a',
+              font: { family: "'DM Mono', monospace", size: 10 },
+              callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : fmt(v))
+            },
+            border: { color: '#1e221e' }
+          }
+        }
+      }
+    });
+
+  } catch(err) {
     setStatus(err.message || 'Something went wrong. Please try again.');
   } finally {
     setLoading(false);
   }
 }
 
-// Reposition dropdown on scroll or resize
-window.addEventListener('scroll', () => {
-  if (document.getElementById('tickerDropdown').style.display !== 'none') positionDropdown();
-}, true);
-window.addEventListener('resize', () => {
-  if (document.getElementById('tickerDropdown').style.display !== 'none') positionDropdown();
-});
-
-// Enter key on non-ticker fields
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.activeElement.id !== 'ticker') calculate();
+  const id = document.activeElement.id;
+  if (e.key === 'Enter' && id !== 'tickerA' && id !== 'tickerB') calculate();
 });
 
-// Inject dropdown into body so no ancestor can clip or trap it
-const _dd = document.createElement('div');
-_dd.id = 'tickerDropdown';
-document.body.appendChild(_dd);
+// Inject dropdowns into body
+['A','B'].forEach(slot => {
+  const dd = document.createElement('div');
+  dd.id = 'dropdown' + slot;
+  dd.className = 'ticker-dropdown';
+  document.body.appendChild(dd);
+});
 
 // Default date: 5 years ago
-const d = new Date();
-d.setFullYear(d.getFullYear() - 5);
-document.getElementById('startDate').value = d.toISOString().split('T')[0];
+const _d = new Date();
+_d.setFullYear(_d.getFullYear() - 5);
+document.getElementById('startDate').value = _d.toISOString().split('T')[0];
 document.getElementById('startDate').max = new Date().toISOString().split('T')[0];
 </script>
 </body>
