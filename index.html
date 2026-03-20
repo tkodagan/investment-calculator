@@ -431,7 +431,6 @@
              oninput="onTickerInput(this.value)"
              onkeydown="onTickerKeydown(event)"
              onblur="hideDropdownDelayed()">
-      <div id="tickerDropdown"></div>
     </div>
   </div>
   <div class="row">
@@ -832,6 +831,11 @@ window.addEventListener('resize', () => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.activeElement.id !== 'ticker') calculate();
 });
+
+// Inject dropdown into body so no ancestor can clip or trap it
+const _dd = document.createElement('div');
+_dd.id = 'tickerDropdown';
+document.body.appendChild(_dd);
 
 // Default date: 5 years ago
 const d = new Date();
