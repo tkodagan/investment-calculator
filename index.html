@@ -140,16 +140,15 @@
 
   #tickerDropdown {
     display: none;
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
+    position: fixed;
     background: #1a1f1a;
     border: 1px solid var(--border-bright);
     border-radius: 3px;
-    z-index: 100;
+    z-index: 9999;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    max-height: 280px;
+    overflow-y: auto;
   }
 
   .dropdown-item {
@@ -482,63 +481,152 @@ function setLoading(on) {
 }
 
 // --- Autocomplete ---
-let searchTimeout = null;
-let dropdownItems = [];
-let activeIndex = -1;
-let skipNextSearch = false;
+// --- Curated ticker list (local, no API calls) ---
+const TICKERS = [
+  // Major ETFs
+  { s: 'SPY',  n: 'SPDR S&P 500 ETF Trust',           t: 'ETF' },
+  { s: 'QQQ',  n: 'Invesco QQQ Trust (Nasdaq-100)',    t: 'ETF' },
+  { s: 'VTI',  n: 'Vanguard Total Stock Market ETF',   t: 'ETF' },
+  { s: 'VOO',  n: 'Vanguard S&P 500 ETF',              t: 'ETF' },
+  { s: 'IWM',  n: 'iShares Russell 2000 ETF',          t: 'ETF' },
+  { s: 'DIA',  n: 'SPDR Dow Jones Industrial Average', t: 'ETF' },
+  { s: 'VNQ',  n: 'Vanguard Real Estate ETF',          t: 'ETF' },
+  { s: 'GLD',  n: 'SPDR Gold Shares',                  t: 'ETF' },
+  { s: 'SLV',  n: 'iShares Silver Trust',              t: 'ETF' },
+  { s: 'TLT',  n: 'iShares 20+ Year Treasury Bond ETF',t: 'ETF' },
+  { s: 'AGG',  n: 'iShares Core U.S. Aggregate Bond',  t: 'ETF' },
+  { s: 'VEA',  n: 'Vanguard FTSE Developed Markets',   t: 'ETF' },
+  { s: 'EEM',  n: 'iShares MSCI Emerging Markets ETF', t: 'ETF' },
+  { s: 'XLF',  n: 'Financial Select Sector SPDR',      t: 'ETF' },
+  { s: 'XLK',  n: 'Technology Select Sector SPDR',     t: 'ETF' },
+  { s: 'XLE',  n: 'Energy Select Sector SPDR',         t: 'ETF' },
+  { s: 'ARKK', n: 'ARK Innovation ETF',                t: 'ETF' },
+  { s: 'SCHD', n: 'Schwab US Dividend Equity ETF',     t: 'ETF' },
+  { s: 'VGT',  n: 'Vanguard Information Technology',   t: 'ETF' },
+  { s: 'JEPI', n: 'JPMorgan Equity Premium Income ETF',t: 'ETF' },
+  // Mega-cap stocks
+  { s: 'AAPL', n: 'Apple Inc.',                        t: 'Stock' },
+  { s: 'MSFT', n: 'Microsoft Corporation',             t: 'Stock' },
+  { s: 'GOOGL',n: 'Alphabet Inc. (Class A)',           t: 'Stock' },
+  { s: 'GOOG', n: 'Alphabet Inc. (Class C)',           t: 'Stock' },
+  { s: 'AMZN', n: 'Amazon.com Inc.',                   t: 'Stock' },
+  { s: 'NVDA', n: 'NVIDIA Corporation',                t: 'Stock' },
+  { s: 'META', n: 'Meta Platforms Inc.',               t: 'Stock' },
+  { s: 'TSLA', n: 'Tesla Inc.',                        t: 'Stock' },
+  { s: 'BRK.B',n: 'Berkshire Hathaway Inc. (Class B)', t: 'Stock' },
+  { s: 'BRK.A',n: 'Berkshire Hathaway Inc. (Class A)', t: 'Stock' },
+  { s: 'JPM',  n: 'JPMorgan Chase & Co.',              t: 'Stock' },
+  { s: 'V',    n: 'Visa Inc.',                         t: 'Stock' },
+  { s: 'MA',   n: 'Mastercard Incorporated',           t: 'Stock' },
+  { s: 'UNH',  n: 'UnitedHealth Group Inc.',           t: 'Stock' },
+  { s: 'JNJ',  n: 'Johnson & Johnson',                 t: 'Stock' },
+  { s: 'WMT',  n: 'Walmart Inc.',                      t: 'Stock' },
+  { s: 'PG',   n: 'Procter & Gamble Co.',              t: 'Stock' },
+  { s: 'HD',   n: 'The Home Depot Inc.',               t: 'Stock' },
+  { s: 'BAC',  n: 'Bank of America Corporation',       t: 'Stock' },
+  { s: 'XOM',  n: 'Exxon Mobil Corporation',           t: 'Stock' },
+  { s: 'CVX',  n: 'Chevron Corporation',               t: 'Stock' },
+  { s: 'ABBV', n: 'AbbVie Inc.',                       t: 'Stock' },
+  { s: 'KO',   n: 'The Coca-Cola Company',             t: 'Stock' },
+  { s: 'PEP',  n: 'PepsiCo Inc.',                      t: 'Stock' },
+  { s: 'AVGO', n: 'Broadcom Inc.',                     t: 'Stock' },
+  { s: 'COST', n: 'Costco Wholesale Corporation',      t: 'Stock' },
+  { s: 'MRK',  n: 'Merck & Co. Inc.',                  t: 'Stock' },
+  { s: 'LLY',  n: 'Eli Lilly and Company',             t: 'Stock' },
+  { s: 'TMO',  n: 'Thermo Fisher Scientific Inc.',     t: 'Stock' },
+  { s: 'ORCL', n: 'Oracle Corporation',                t: 'Stock' },
+  { s: 'CRM',  n: 'Salesforce Inc.',                   t: 'Stock' },
+  { s: 'NFLX', n: 'Netflix Inc.',                      t: 'Stock' },
+  { s: 'ADBE', n: 'Adobe Inc.',                        t: 'Stock' },
+  { s: 'AMD',  n: 'Advanced Micro Devices Inc.',       t: 'Stock' },
+  { s: 'INTC', n: 'Intel Corporation',                 t: 'Stock' },
+  { s: 'QCOM', n: 'QUALCOMM Incorporated',             t: 'Stock' },
+  { s: 'DIS',  n: 'The Walt Disney Company',           t: 'Stock' },
+  { s: 'PYPL', n: 'PayPal Holdings Inc.',              t: 'Stock' },
+  { s: 'UBER', n: 'Uber Technologies Inc.',            t: 'Stock' },
+  { s: 'LYFT', n: 'Lyft Inc.',                         t: 'Stock' },
+  { s: 'SPOT', n: 'Spotify Technology S.A.',           t: 'Stock' },
+  { s: 'SQ',   n: 'Block Inc.',                        t: 'Stock' },
+  { s: 'SHOP', n: 'Shopify Inc.',                      t: 'Stock' },
+  { s: 'SNAP', n: 'Snap Inc.',                         t: 'Stock' },
+  { s: 'TWTR', n: 'Twitter / X Corp.',                 t: 'Stock' },
+  { s: 'COIN', n: 'Coinbase Global Inc.',              t: 'Stock' },
+  { s: 'HOOD', n: 'Robinhood Markets Inc.',            t: 'Stock' },
+  { s: 'PLTR', n: 'Palantir Technologies Inc.',        t: 'Stock' },
+  { s: 'NET',  n: 'Cloudflare Inc.',                   t: 'Stock' },
+  { s: 'ZM',   n: 'Zoom Video Communications',         t: 'Stock' },
+  { s: 'ABNB', n: 'Airbnb Inc.',                       t: 'Stock' },
+  { s: 'RBLX', n: 'Roblox Corporation',                t: 'Stock' },
+  { s: 'RIVN', n: 'Rivian Automotive Inc.',            t: 'Stock' },
+  { s: 'F',    n: 'Ford Motor Company',                t: 'Stock' },
+  { s: 'GM',   n: 'General Motors Company',            t: 'Stock' },
+  { s: 'GS',   n: 'Goldman Sachs Group Inc.',          t: 'Stock' },
+  { s: 'MS',   n: 'Morgan Stanley',                    t: 'Stock' },
+  { s: 'C',    n: 'Citigroup Inc.',                    t: 'Stock' },
+  { s: 'WFC',  n: 'Wells Fargo & Company',             t: 'Stock' },
+  { s: 'T',    n: 'AT&T Inc.',                         t: 'Stock' },
+  { s: 'VZ',   n: 'Verizon Communications Inc.',       t: 'Stock' },
+  { s: 'TMUS', n: 'T-Mobile US Inc.',                  t: 'Stock' },
+  { s: 'BA',   n: 'The Boeing Company',                t: 'Stock' },
+  { s: 'CAT',  n: 'Caterpillar Inc.',                  t: 'Stock' },
+  { s: 'DE',   n: 'Deere & Company',                   t: 'Stock' },
+  { s: 'MMM',  n: '3M Company',                        t: 'Stock' },
+  { s: 'GE',   n: 'GE Aerospace',                      t: 'Stock' },
+  { s: 'NKE',  n: 'Nike Inc.',                         t: 'Stock' },
+  { s: 'MCD',  n: "McDonald's Corporation",            t: 'Stock' },
+  { s: 'SBUX', n: 'Starbucks Corporation',             t: 'Stock' },
+  { s: 'TGT',  n: 'Target Corporation',                t: 'Stock' },
+  { s: 'AMGN', n: 'Amgen Inc.',                        t: 'Stock' },
+  { s: 'GILD', n: 'Gilead Sciences Inc.',              t: 'Stock' },
+  { s: 'BMY',  n: 'Bristol-Myers Squibb Company',      t: 'Stock' },
+  { s: 'PFE',  n: 'Pfizer Inc.',                       t: 'Stock' },
+  { s: 'MRNA', n: 'Moderna Inc.',                      t: 'Stock' },
+];
 
 function onTickerInput(val) {
-  if (skipNextSearch) { skipNextSearch = false; return; }
-  const q = val.trim();
-  if (q.length < 1) { hideDropdown(); return; }
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => searchTickers(q), 280);
+  const q = val.trim().toUpperCase();
+  if (q.length < 2) { hideDropdown(); return; }
+
+  const matches = TICKERS.filter(t =>
+    t.s.startsWith(q) || t.n.toUpperCase().includes(q)
+  ).slice(0, 8);
+
+  positionDropdown();
+  const dropdown = document.getElementById('tickerDropdown');
+  dropdownItems = matches;
+  activeIndex = -1;
+
+  if (matches.length === 0) {
+    dropdown.innerHTML = '<div class="dropdown-searching">No matches &mdash; type the full ticker symbol</div>';
+    dropdown.style.display = 'block';
+    return;
+  }
+
+  dropdown.innerHTML = matches.map((m, i) => `
+    <div class="dropdown-item" data-index="${i}" onmousedown="selectTicker(${i})">
+      <span class="dropdown-symbol">${m.s}</span>
+      <span class="dropdown-name">${m.n}</span>
+      <span class="dropdown-type">${m.t}</span>
+    </div>
+  `).join('');
+  dropdown.style.display = 'block';
 }
 
-async function searchTickers(q) {
+function positionDropdown() {
+  const input = document.getElementById('ticker');
+  const rect = input.getBoundingClientRect();
   const dropdown = document.getElementById('tickerDropdown');
-  dropdown.innerHTML = '<div class="dropdown-searching">Searching&hellip;</div>';
-  dropdown.style.display = 'block';
-
-  try {
-    const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(q)}&apikey=${API_KEY}`;
-    const resp = await fetch(url);
-    const data = await resp.json();
-
-    if (data['Information']) {
-      dropdown.innerHTML = '<div class="dropdown-searching">Rate limit reached &mdash; type the ticker manually</div>';
-      return;
-    }
-
-    const matches = (data.bestMatches || []).slice(0, 7);
-    dropdownItems = matches;
-    activeIndex = -1;
-
-    if (matches.length === 0) {
-      dropdown.innerHTML = '<div class="dropdown-searching">No matches found</div>';
-      return;
-    }
-
-    dropdown.innerHTML = matches.map((m, i) => `
-      <div class="dropdown-item" data-index="${i}" onmousedown="selectTicker(${i})">
-        <span class="dropdown-symbol">${m['1. symbol']}</span>
-        <span class="dropdown-name">${m['2. name']}</span>
-        <span class="dropdown-type">${m['3. type']}</span>
-      </div>
-    `).join('');
-  } catch(e) {
-    dropdown.innerHTML = '<div class="dropdown-searching">Search unavailable</div>';
-  }
+  dropdown.style.top = (rect.bottom + 4) + 'px';
+  dropdown.style.left = rect.left + 'px';
+  dropdown.style.width = rect.width + 'px';
 }
 
 function selectTicker(index) {
   const item = dropdownItems[index];
   if (!item) return;
-  skipNextSearch = true;
   const input = document.getElementById('ticker');
-  input.value = item['1. symbol'];
+  input.value = item.s;
   hideDropdown();
-  // Move focus to date field for smoother UX
   document.getElementById('startDate').focus();
 }
 
@@ -731,6 +819,14 @@ async function calculate() {
     setLoading(false);
   }
 }
+
+// Reposition dropdown on scroll or resize
+window.addEventListener('scroll', () => {
+  if (document.getElementById('tickerDropdown').style.display !== 'none') positionDropdown();
+}, true);
+window.addEventListener('resize', () => {
+  if (document.getElementById('tickerDropdown').style.display !== 'none') positionDropdown();
+});
 
 // Enter key on non-ticker fields
 document.addEventListener('keydown', e => {
