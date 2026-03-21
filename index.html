@@ -416,10 +416,9 @@
 <div id="status"></div>
 <div id="result"></div>
 
-<footer>Data provided by Alpha Vantage &bull; Past performance does not indicate future results</footer>
+<footer>Data provided by Yahoo Finance &bull; Past performance does not indicate future results</footer>
 
 <script>
-const API_KEY = 'LS6NMT89KF6VCU0X';
 let growthChart = null;
 
 function fmt(n) {
@@ -626,25 +625,29 @@ window.addEventListener('resize', () => {
   });
 });
 
-// ── API ──
+// ── API — Yahoo Finance (no key, no rate limit) ──
+
+// Returns a map of { 'YYYY-MM-DD': adjustedClose } for monthly data
 async function fetchMonthly(ticker) {
-  const url = `/api/av?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}&apikey=${API_KEY}`;
+  // Use 20yr range, 1mo interval
+  const url = `/api/yahoo?ticker=${encodeURIComponent(ticker)}&interval=1mo&range=20y`;
   const resp = await fetch(url);
-  if (!resp.ok) throw new Error('Network error.');
+  if (!resp.ok) throw new Error(`"${ticker}" not found or network error.`);
   const data = await resp.json();
-  if (data['Information']) throw new Error('API rate limit reached (25/day on free tier).');
-  if (data['Error Message']) throw new Error(`"${ticker}" not found. Check the symbol.`);
-  if (!data['Monthly Adjusted Time Series']) throw new Error(`No data returned for "${ticker}".`);
-  return data['Monthly Adjusted Time Series'];
+  if (data.error) throw new Error(data.error);
+  return data; // { 'YYYY-MM-DD': price, ... }
 }
 
-async function fetchDaily(ticker) {
-  const url = `/api/av?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${ticker}&outputsize=compact&apikey=${API_KEY}`;
+// Returns most recent trading day price and date
+async function fetchLatest(ticker) {
+  const url = `/api/yahoo?ticker=${encodeURIComponent(ticker)}&interval=1d&range=5d`;
   const resp = await fetch(url);
   if (!resp.ok) return null;
   const data = await resp.json();
-  if (!data['Time Series (Daily)']) return null;
-  return data['Time Series (Daily)'];
+  if (data.error || !Object.keys(data).length) return null;
+  const dates = Object.keys(data).sort();
+  const lastDate = dates[dates.length - 1];
+  return { date: lastDate, price: data[lastDate] };
 }
 
 function lastKey(obj) { return Object.keys(obj).sort().pop(); }
@@ -699,30 +702,29 @@ async function calculate() {
     if (!startA) throw new Error(`No data for ${tA} at or after your start date.`);
     if (!startB) throw new Error(`No data for ${tB} at or after your start date.`);
 
-    // Use the later of the two start keys so both series begin on the same month
     const sharedStart = startA > startB ? startA : startB;
 
     const endA = lastKey(monthlyA);
     const endB = lastKey(monthlyB);
     const sharedEnd = endA > endB ? endA : endB;
 
-    const buyA = parseFloat(monthlyA[sharedStart]['5. adjusted close']);
-    const buyB = parseFloat(monthlyB[sharedStart]['5. adjusted close']);
+    const buyA = monthlyA[sharedStart];
+    const buyB = monthlyB[sharedStart];
 
-    // Current price: try daily, fall back to monthly
-    let curA = parseFloat(monthlyA[endA]['5. adjusted close']), curDateA = endA;
-    let curB = parseFloat(monthlyB[endB]['5. adjusted close']), curDateB = endB;
+    // Get latest price
+    let curA = monthlyA[endA], curDateA = endA;
+    let curB = monthlyB[endB], curDateB = endB;
     try {
-      const [dA, dB] = await Promise.all([fetchDaily(tA), fetchDaily(tB)]);
-      if (dA) { curDateA = lastKey(dA); curA = parseFloat(dA[curDateA]['4. close']); }
-      if (dB) { curDateB = lastKey(dB); curB = parseFloat(dB[curDateB]['4. close']); }
+      const [latA, latB] = await Promise.all([fetchLatest(tA), fetchLatest(tB)]);
+      if (latA) { curDateA = latA.date; curA = latA.price; }
+      if (latB) { curDateB = latB.date; curB = latB.price; }
     } catch(e) { /* monthly fallback */ }
 
     // Build portfolio value maps for chart
     function buildMap(monthly, start, end, amt, buy) {
       const keys = Object.keys(monthly).sort().filter(d => d >= start && d <= end);
       const map = {};
-      keys.forEach(d => { map[d] = (amt / buy) * parseFloat(monthly[d]['5. adjusted close']); });
+      keys.forEach(d => { map[d] = (amt / buy) * monthly[d]; });
       return map;
     }
 
