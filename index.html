@@ -8,19 +8,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg: #0d0f0e;
-    --surface: #141714;
-    --border: #1e221e;
-    --border-bright: #2a302a;
-    --text: #e8ede8;
-    --muted: #5a635a;
-    --accent: #b8ff57;
-    --accent-dim: #8ab83e;
-    --gain: #b8ff57;
-    --loss: #ff6b57;
-    --loss-dim: #c45242;
-    --color-a: #b8ff57;
-    --color-b: #57c8ff;
+    --bg: #08090f;
+    --surface: #0f1117;
+    --surface-2: #161b26;
+    --border: #1c2030;
+    --border-bright: #252d40;
+    --text: #f2f4f8;
+    --muted: #4a5568;
+    --accent: #0a84ff;
+    --accent-dim: #0066cc;
+    --gain: #30d158;
+    --gain-dim: #25a244;
+    --loss: #ff453a;
+    --loss-dim: #cc3630;
+    --color-a: #0a84ff;
+    --color-b: #30d158;
+    --color-sp: #bf5af2;
     --font-display: 'DM Serif Display', Georgia, serif;
     --font-mono: 'DM Mono', 'Courier New', monospace;
   }
@@ -37,7 +40,7 @@
     flex-direction: column;
     align-items: center;
     padding: 60px 24px 80px;
-    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(184,255,87,0.06) 0%, transparent 70%);
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(10,132,255,0.08) 0%, transparent 70%);
   }
 
   header { text-align: center; margin-bottom: 56px; }
@@ -70,10 +73,10 @@
 
   .card {
     width: 100%;
-    max-width: 680px;
+    max-width: 960px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 20px;
     padding: 40px;
     position: relative;
   }
@@ -82,8 +85,8 @@
     content: '';
     position: absolute;
     inset: -1px;
-    border-radius: 4px;
-    background: linear-gradient(135deg, rgba(184,255,87,0.12), transparent 60%);
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(10,132,255,0.08), transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
@@ -104,9 +107,9 @@
 
   input {
     width: 100%;
-    background: var(--bg);
+    background: var(--surface-2);
     border: 1px solid var(--border-bright);
-    border-radius: 3px;
+    border-radius: 10px;
     color: var(--text);
     font-family: var(--font-mono);
     font-size: 1.05rem;
@@ -116,13 +119,13 @@
     -webkit-appearance: none;
   }
 
-  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,255,87,0.08); }
+  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(10,132,255,0.15); }
   input::placeholder { color: var(--muted); opacity: 0.6; }
 
   .ticker-a label { color: var(--color-a); opacity: 0.9; }
   .ticker-b label { color: var(--color-b); opacity: 0.9; }
-  .ticker-a input:focus { border-color: var(--color-a); box-shadow: 0 0 0 3px rgba(184,255,87,0.08); }
-  .ticker-b input:focus { border-color: var(--color-b); box-shadow: 0 0 0 3px rgba(87,200,255,0.08); }
+  .ticker-a input:focus { border-color: var(--color-a); box-shadow: 0 0 0 3px rgba(10,132,255,0.15); }
+  .ticker-b input:focus { border-color: var(--color-b); box-shadow: 0 0 0 3px rgba(48,209,88,0.15); }
 
   .ticker-row-inputs {
     display: grid;
@@ -162,13 +165,13 @@
   .ticker-dropdown {
     display: none;
     position: fixed;
-    background: #1a1f1a;
+    background: #0f1117;
     border: 1px solid var(--border-bright);
-    border-radius: 3px;
+    border-radius: 12px;
     z-index: 9999;
     overflow-y: auto;
     max-height: 260px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
   }
 
   .dropdown-item {
@@ -181,7 +184,7 @@
   }
 
   .dropdown-item:last-child { border-bottom: none; }
-  .dropdown-item:hover, .dropdown-item.active { background: rgba(184,255,87,0.07); }
+  .dropdown-item:hover, .dropdown-item.active { background: rgba(10,132,255,0.08); }
 
   .dropdown-symbol { font-size: 0.9rem; font-weight: 500; color: var(--text); letter-spacing: 0.05em; min-width: 64px; }
   .dropdown-name { font-size: 0.72rem; color: var(--muted); flex: 1; padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: none; letter-spacing: 0.02em; }
@@ -191,9 +194,9 @@
   button {
     width: 100%;
     background: var(--accent);
-    color: #0a0c0a;
+    color: #ffffff;
     border: none;
-    border-radius: 3px;
+    border-radius: 12px;
     font-family: var(--font-mono);
     font-size: 0.72rem;
     font-weight: 500;
@@ -201,17 +204,18 @@
     text-transform: uppercase;
     padding: 16px;
     cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
     margin-top: 8px;
+    box-shadow: 0 4px 20px rgba(10,132,255,0.3);
   }
 
-  button:hover { background: #c9ff6e; }
-  button:active { transform: scale(0.99); }
-  button:disabled { background: var(--border-bright); color: var(--muted); cursor: not-allowed; }
+  button:hover { background: #1a8fff; box-shadow: 0 6px 24px rgba(10,132,255,0.45); }
+  button:active { transform: scale(0.99); box-shadow: none; }
+  button:disabled { background: var(--border-bright); color: var(--muted); cursor: not-allowed; box-shadow: none; }
 
   #status {
     width: 100%;
-    max-width: 680px;
+    max-width: 960px;
     margin-top: 16px;
     display: none;
     font-size: 0.75rem;
@@ -232,12 +236,12 @@
     padding: 20px 0;
   }
 
-  #result { width: 100%; max-width: 680px; margin-top: 16px; display: none; }
+  #result { width: 100%; max-width: 960px; margin-top: 16px; display: none; }
 
   /* ── Result cards ── */
   .compare-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 12px;
     margin-bottom: 12px;
   }
@@ -245,7 +249,7 @@
   .result-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 16px;
     padding: 28px 24px 24px;
     position: relative;
     overflow: hidden;
@@ -258,27 +262,30 @@
     pointer-events: none;
   }
 
-  .result-card.card-a { border-color: rgba(184,255,87,0.2); }
-  .result-card.card-a::before { background: radial-gradient(ellipse at top left, rgba(184,255,87,0.04), transparent 60%); }
-  .result-card.card-b { border-color: rgba(87,200,255,0.2); }
-  .result-card.card-b::before { background: radial-gradient(ellipse at top left, rgba(87,200,255,0.04), transparent 60%); }
+  .result-card.card-a { border-color: rgba(10,132,255,0.25); }
+  .result-card.card-a::before { background: radial-gradient(ellipse at top left, rgba(10,132,255,0.06), transparent 60%); }
+  .result-card.card-b { border-color: rgba(48,209,88,0.25); }
+  .result-card.card-b::before { background: radial-gradient(ellipse at top left, rgba(48,209,88,0.06), transparent 60%); }
+  .result-card.card-sp { border-color: rgba(191,90,242,0.25); }
+  .result-card.card-sp::before { background: radial-gradient(ellipse at top left, rgba(191,90,242,0.06), transparent 60%); }
 
   .winner-badge {
     display: inline-block;
     font-size: 0.55rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    background: rgba(184,255,87,0.1);
+    background: rgba(10,132,255,0.12);
     color: var(--accent);
-    border: 1px solid rgba(184,255,87,0.22);
-    border-radius: 2px;
-    padding: 3px 8px;
+    border: 1px solid rgba(10,132,255,0.25);
+    border-radius: 20px;
+    padding: 3px 10px;
     margin-bottom: 10px;
   }
 
   .rc-ticker { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 3px; }
   .card-a .rc-ticker { color: var(--color-a); }
   .card-b .rc-ticker { color: var(--color-b); }
+  .card-sp .rc-ticker { color: var(--color-sp); }
 
   .rc-dates { font-size: 0.58rem; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 18px; }
 
@@ -303,7 +310,7 @@
   .rc-return.loss { color: var(--loss); }
 
   .rc-pct { font-size: 0.7rem; letter-spacing: 0.04em; margin-bottom: 18px; }
-  .rc-pct.gain { color: var(--accent-dim); }
+  .rc-pct.gain { color: var(--gain-dim); }
   .rc-pct.loss { color: var(--loss-dim); }
 
   .mini-stats {
@@ -312,7 +319,7 @@
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
-    border-radius: 3px;
+    border-radius: 10px;
     overflow: hidden;
   }
 
@@ -326,7 +333,7 @@
   .chart-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 16px;
     padding: 28px 28px 24px;
   }
 
@@ -356,8 +363,12 @@
     opacity: 0.5;
   }
 
+  @media (max-width: 760px) {
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+
   @media (max-width: 560px) {
-    .ticker-row-inputs, .bottom-row, .compare-grid { grid-template-columns: 1fr; }
+    .ticker-row-inputs, .bottom-row { grid-template-columns: 1fr; }
     .card { padding: 28px 20px; }
     .result-card { padding: 22px 18px; }
     .chart-card { padding: 20px 16px; }
@@ -689,7 +700,10 @@ async function calculate() {
   setLoading(true);
 
   try {
-    const [monthlyA, monthlyB] = await Promise.all([fetchMonthly(tA), fetchMonthly(tB)]);
+    const BENCH = '^GSPC'; // S&P 500
+    const [monthlyA, monthlyB, monthlySP] = await Promise.all([
+      fetchMonthly(tA), fetchMonthly(tB), fetchMonthly(BENCH)
+    ]);
 
     function resolveStart(monthly, sd) {
       const keys = Object.keys(monthly).sort();
@@ -697,27 +711,35 @@ async function calculate() {
       return null;
     }
 
-    const startA = resolveStart(monthlyA, startDate);
-    const startB = resolveStart(monthlyB, startDate);
-    if (!startA) throw new Error(`No data for ${tA} at or after your start date.`);
-    if (!startB) throw new Error(`No data for ${tB} at or after your start date.`);
+    const startA  = resolveStart(monthlyA,  startDate);
+    const startB  = resolveStart(monthlyB,  startDate);
+    const startSP = resolveStart(monthlySP, startDate);
+    if (!startA)  throw new Error(`No data for ${tA} at or after your start date.`);
+    if (!startB)  throw new Error(`No data for ${tB} at or after your start date.`);
+    if (!startSP) throw new Error(`No S&P 500 data at or after your start date.`);
 
-    const sharedStart = startA > startB ? startA : startB;
+    const sharedStart = [startA, startB, startSP].sort().pop();
 
-    const endA = lastKey(monthlyA);
-    const endB = lastKey(monthlyB);
-    const sharedEnd = endA > endB ? endA : endB;
+    const endA  = lastKey(monthlyA);
+    const endB  = lastKey(monthlyB);
+    const endSP = lastKey(monthlySP);
+    const sharedEnd = [endA, endB, endSP].sort().pop();
 
-    const buyA = monthlyA[sharedStart];
-    const buyB = monthlyB[sharedStart];
+    const buyA  = monthlyA[sharedStart];
+    const buyB  = monthlyB[sharedStart];
+    const buySP = monthlySP[sharedStart];
 
-    // Get latest price
-    let curA = monthlyA[endA], curDateA = endA;
-    let curB = monthlyB[endB], curDateB = endB;
+    // Get latest prices — all three in parallel
+    let curA = monthlyA[endA],   curDateA = endA;
+    let curB = monthlyB[endB],   curDateB = endB;
+    let curSP = monthlySP[endSP], curDateSP = endSP;
     try {
-      const [latA, latB] = await Promise.all([fetchLatest(tA), fetchLatest(tB)]);
-      if (latA) { curDateA = latA.date; curA = latA.price; }
-      if (latB) { curDateB = latB.date; curB = latB.price; }
+      const [latA, latB, latSP] = await Promise.all([
+        fetchLatest(tA), fetchLatest(tB), fetchLatest(BENCH)
+      ]);
+      if (latA)  { curDateA  = latA.date;  curA  = latA.price;  }
+      if (latB)  { curDateB  = latB.date;  curB  = latB.price;  }
+      if (latSP) { curDateSP = latSP.date; curSP = latSP.price; }
     } catch(e) { /* monthly fallback */ }
 
     // Build portfolio value maps for chart
@@ -728,31 +750,43 @@ async function calculate() {
       return map;
     }
 
-    const mapA = buildMap(monthlyA, sharedStart, sharedEnd, amount, buyA);
-    const mapB = buildMap(monthlyB, sharedStart, sharedEnd, amount, buyB);
+    const mapA  = buildMap(monthlyA,  sharedStart, sharedEnd, amount, buyA);
+    const mapB  = buildMap(monthlyB,  sharedStart, sharedEnd, amount, buyB);
+    const mapSP = buildMap(monthlySP, sharedStart, sharedEnd, amount, buySP);
 
-    const allDates = [...new Set([...Object.keys(mapA), ...Object.keys(mapB)])].sort();
-    const valuesA = alignSeries(mapA, allDates);
-    const valuesB = alignSeries(mapB, allDates);
+    const allDates = [...new Set([...Object.keys(mapA), ...Object.keys(mapB), ...Object.keys(mapSP)])].sort();
+    const valuesA  = alignSeries(mapA,  allDates);
+    const valuesB  = alignSeries(mapB,  allDates);
+    const valuesSP = alignSeries(mapSP, allDates);
 
     // Final stats
-    const finalA = (amount / buyA) * curA;
-    const finalB = (amount / buyB) * curB;
-    const gainA = finalA - amount, gainB = finalB - amount;
-    const pctA = (gainA / amount) * 100, pctB = (gainB / amount) * 100;
-    const yearsA = (new Date(curDateA) - new Date(sharedStart)) / (1000*60*60*24*365.25);
-    const yearsB = (new Date(curDateB) - new Date(sharedStart)) / (1000*60*60*24*365.25);
-    const cagrA = yearsA > 0 ? (Math.pow(finalA/amount, 1/yearsA) - 1)*100 : 0;
-    const cagrB = yearsB > 0 ? (Math.pow(finalB/amount, 1/yearsB) - 1)*100 : 0;
+    const finalA  = (amount / buyA)  * curA;
+    const finalB  = (amount / buyB)  * curB;
+    const finalSP = (amount / buySP) * curSP;
+    const gainA  = finalA  - amount, gainB  = finalB  - amount, gainSP = finalSP - amount;
+    const pctA   = (gainA  / amount) * 100;
+    const pctB   = (gainB  / amount) * 100;
+    const pctSP  = (gainSP / amount) * 100;
+    const yearsA  = (new Date(curDateA)  - new Date(sharedStart)) / (1000*60*60*24*365.25);
+    const yearsB  = (new Date(curDateB)  - new Date(sharedStart)) / (1000*60*60*24*365.25);
+    const yearsSP = (new Date(curDateSP) - new Date(sharedStart)) / (1000*60*60*24*365.25);
+    const cagrA  = yearsA  > 0 ? (Math.pow(finalA /amount, 1/yearsA)  - 1)*100 : 0;
+    const cagrB  = yearsB  > 0 ? (Math.pow(finalB /amount, 1/yearsB)  - 1)*100 : 0;
+    const cagrSP = yearsSP > 0 ? (Math.pow(finalSP/amount, 1/yearsSP) - 1)*100 : 0;
+
+    // Winner among user picks only (not benchmark)
     const winnerIsA = finalA >= finalB;
 
-    function cardHTML(ticker, slot, startKey, curDate, curPrice, buyPrice, finalVal, gain, pct, cagr, isWinner) {
+    function cardHTML(ticker, slot, startKey, curDate, curPrice, buyPrice, finalVal, gain, pct, cagr, badge) {
       const isGain = gain >= 0;
       const sign = isGain ? '+' : '';
       const cls = isGain ? 'gain' : 'loss';
+      const badgeHTML = badge
+        ? `<div class="winner-badge">${badge}</div>`
+        : '<div style="height:21px;margin-bottom:10px"></div>';
       return `
         <div class="result-card card-${slot.toLowerCase()}">
-          ${isWinner ? '<div class="winner-badge">&#9650; Winner</div>' : '<div style="height:21px;margin-bottom:10px"></div>'}
+          ${badgeHTML}
           <div class="rc-ticker">${ticker}</div>
           <div class="rc-dates">${fmtDate(startKey)} &rarr; ${fmtDate(curDate)}</div>
           <div class="rc-present">$${fmt(finalVal)}</div>
@@ -787,15 +821,17 @@ async function calculate() {
 
     document.getElementById('result').innerHTML = `
       <div class="compare-grid">
-        ${cardHTML(tA, 'A', sharedStart, curDateA, curA, buyA, finalA, gainA, pctA, cagrA, winnerIsA)}
-        ${cardHTML(tB, 'B', sharedStart, curDateB, curB, buyB, finalB, gainB, pctB, cagrB, !winnerIsA)}
+        ${cardHTML(tA, 'A', sharedStart, curDateA, curA, buyA, finalA, gainA, pctA, cagrA, winnerIsA ? '&#9650; Winner' : null)}
+        ${cardHTML(tB, 'B', sharedStart, curDateB, curB, buyB, finalB, gainB, pctB, cagrB, !winnerIsA ? '&#9650; Winner' : null)}
+        ${cardHTML('S&P 500', 'sp', sharedStart, curDateSP, curSP, buySP, finalSP, gainSP, pctSP, cagrSP, '&#9642; Benchmark')}
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <span class="chart-title">Portfolio Value Over Time</span>
           <div class="chart-legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#b8ff57"></div>${tA}</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#57c8ff"></div>${tB}</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#0a84ff"></div>${tA}</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#30d158"></div>${tB}</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#bf5af2"></div>S&P 500</div>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
@@ -813,8 +849,8 @@ async function calculate() {
           {
             label: tA,
             data: valuesA,
-            borderColor: '#b8ff57',
-            backgroundColor: 'rgba(184,255,87,0.05)',
+            borderColor: '#0a84ff',
+            backgroundColor: 'rgba(10,132,255,0.05)',
             borderWidth: 2,
             pointRadius: 0,
             tension: 0.3,
@@ -823,9 +859,20 @@ async function calculate() {
           {
             label: tB,
             data: valuesB,
-            borderColor: '#57c8ff',
-            backgroundColor: 'rgba(87,200,255,0.05)',
+            borderColor: '#30d158',
+            backgroundColor: 'rgba(48,209,88,0.05)',
             borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.3,
+            fill: true,
+          },
+          {
+            label: 'S&P 500',
+            data: valuesSP,
+            borderColor: '#bf5af2',
+            backgroundColor: 'rgba(191,90,242,0.04)',
+            borderWidth: 2,
+            borderDash: [5, 4],
             pointRadius: 0,
             tension: 0.3,
             fill: true,
