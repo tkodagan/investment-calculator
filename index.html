@@ -550,8 +550,8 @@
 
 <header>
   <div class="eyebrow">Investment Calculator</div>
-  <h1>What would it be<br>worth <em>today?</em></h1>
-  <p class="subtitle">Compare past performance or project future growth.</p>
+  <h1>Invest <em>smarter.</em><br>Plan further.</h1>
+  <p class="subtitle">Analyse past performance. Project future growth. Beat the benchmark.</p>
 </header>
 
 <!-- Tab switcher -->
@@ -608,17 +608,29 @@
 <!-- ══ FUTURE TAB ══ -->
 <div id="futureTab" style="display:none; width:100%; max-width:960px;">
   <div class="card">
-    <div class="field" style="max-width:340px;">
-      <label>Ticker / Symbol</label>
-      <div class="autocomplete-wrap">
-        <input type="text" id="futTicker" placeholder="AAPL, SPY, QQQ..." maxlength="10"
-               autocomplete="off" autocorrect="off" spellcheck="false"
-               oninput="onTickerInput('F', this.value)"
-               onkeydown="onTickerKeydown('F', event)"
-               onblur="hideDropdownDelayed('F')">
+    <div class="ticker-row-inputs">
+      <div class="field ticker-a">
+        <label>Ticker A</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="futTickerA" placeholder="AAPL" maxlength="10"
+                 autocomplete="off" autocorrect="off" spellcheck="false"
+                 oninput="onTickerInput('FA', this.value)"
+                 onkeydown="onTickerKeydown('FA', event)"
+                 onblur="hideDropdownDelayed('FA')">
+        </div>
+      </div>
+      <div class="field ticker-b">
+        <label>Ticker B</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="futTickerB" placeholder="QQQ" maxlength="10"
+                 autocomplete="off" autocorrect="off" spellcheck="false"
+                 oninput="onTickerInput('FB', this.value)"
+                 onkeydown="onTickerKeydown('FB', event)"
+                 onblur="hideDropdownDelayed('FB')">
+        </div>
       </div>
     </div>
-    <div class="divider">projection parameters</div>
+    <div class="divider">same contribution &mdash; same horizon &mdash; vs S&P 500</div>
     <div class="three-col">
       <div class="field">
         <label>Lump Sum (USD)</label>
@@ -785,8 +797,8 @@ const TICKERS = [
   { s:'MRNA', n:'Moderna Inc.',                        t:'Stock' },
 ];
 
-const ddState = { A:{items:[],activeIndex:-1}, B:{items:[],activeIndex:-1}, F:{items:[],activeIndex:-1} };
-const ddInputId = { A:'tickerA', B:'tickerB', F:'futTicker' };
+const ddState = { A:{items:[],activeIndex:-1}, B:{items:[],activeIndex:-1}, F:{items:[],activeIndex:-1}, FA:{items:[],activeIndex:-1}, FB:{items:[],activeIndex:-1} };
+const ddInputId = { A:'tickerA', B:'tickerB', F:'futTicker', FA:'futTickerA', FB:'futTickerB' };
 
 function onTickerInput(slot, val) {
   const q = val.trim().toUpperCase();
@@ -821,8 +833,10 @@ function selectTicker(slot, index) {
   if (!item) return;
   document.getElementById(ddInputId[slot]).value = item.s;
   hideDropdown(slot);
-  if (slot === 'A') document.getElementById('tickerB').focus();
-  else if (slot === 'B') document.getElementById('startDate').focus();
+  if (slot === 'A')  document.getElementById('tickerB').focus();
+  else if (slot === 'B')  document.getElementById('startDate').focus();
+  else if (slot === 'FA') document.getElementById('futTickerB').focus();
+  else if (slot === 'FB') document.getElementById('futLump').focus();
   else document.getElementById('futLump').focus();
 }
 
@@ -849,13 +863,13 @@ function onTickerKeydown(slot, e) {
 }
 
 window.addEventListener('scroll', () => {
-  ['A','B','F'].forEach(s => {
-    if (document.getElementById('dropdown'+s).style.display !== 'none') positionDropdown(s);
+  ['A','B','F','FA','FB'].forEach(s => {
+    if (document.getElementById('dropdown'+s) && document.getElementById('dropdown'+s).style.display !== 'none') positionDropdown(s);
   });
 }, true);
 window.addEventListener('resize', () => {
-  ['A','B','F'].forEach(s => {
-    if (document.getElementById('dropdown'+s).style.display !== 'none') positionDropdown(s);
+  ['A','B','F','FA','FB'].forEach(s => {
+    if (document.getElementById('dropdown'+s) && document.getElementById('dropdown'+s).style.display !== 'none') positionDropdown(s);
   });
 });
 
@@ -1054,121 +1068,127 @@ async function calculatePast() {
 
 // ══ FUTURE TAB CALCULATION ══
 async function calculateFuture() {
-  const ticker = document.getElementById('futTicker').value.trim().toUpperCase();
-  const lump   = parseFloat(document.getElementById('futLump').value)  || 0;
-  const sip    = parseFloat(document.getElementById('futSIP').value)   || 0;
-  const years  = parseInt(document.getElementById('futYears').value)   || 10;
+  const tA    = document.getElementById('futTickerA').value.trim().toUpperCase();
+  const tB    = document.getElementById('futTickerB').value.trim().toUpperCase();
+  const lump  = parseFloat(document.getElementById('futLump').value)  || 0;
+  const sip   = parseFloat(document.getElementById('futSIP').value)   || 0;
+  const years = parseInt(document.getElementById('futYears').value)   || 10;
 
   document.getElementById('futureResult').style.display = 'none';
   setStatus('futStatus', '');
 
-  if (!ticker) { setStatus('futStatus', 'Please enter a ticker symbol.'); return; }
+  if (!tA) { setStatus('futStatus', 'Please enter Ticker A.'); return; }
+  if (!tB) { setStatus('futStatus', 'Please enter Ticker B.'); return; }
   if (lump <= 0 && sip <= 0) { setStatus('futStatus', 'Please enter a lump sum, a monthly SIP, or both.'); return; }
   if (years < 1 || years > 50) { setStatus('futStatus', 'Time horizon must be between 1 and 50 years.'); return; }
 
   setLoading('futLoading', 'futBtn', true, 'Project Growth');
 
   try {
-    // Fetch 10yr of monthly data to compute annualised historical return
-    const monthly = await fetchMonthly(ticker);
-    const dates = Object.keys(monthly).sort();
-    if (dates.length < 24) throw new Error(`Not enough historical data for "${ticker}".`);
+    const BENCH = '^GSPC';
+    const [monthlyA, monthlyB, monthlySP] = await Promise.all([
+      fetchMonthly(tA), fetchMonthly(tB), fetchMonthly(BENCH)
+    ]);
 
-    // Use up to 10 years of history, or whatever is available
-    const endDate   = dates[dates.length - 1];
-    const tenYrsAgo = new Date(endDate);
-    tenYrsAgo.setFullYear(tenYrsAgo.getFullYear() - 10);
-    const tenYrsAgoStr = tenYrsAgo.toISOString().split('T')[0];
-    let histStart = dates.find(d => d >= tenYrsAgoStr) || dates[0];
-
-    const priceStart = monthly[histStart];
-    const priceEnd   = monthly[endDate];
-    const histYears  = (new Date(endDate) - new Date(histStart)) / (1000*60*60*24*365.25);
-    const annualRate = Math.pow(priceEnd / priceStart, 1 / histYears) - 1;
-    const monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
-
-    // Project forward month by month
-    const totalMonths = years * 12;
-    const portfolioValues = [];
-    const contributedValues = [];
-    let portfolioValue = lump;
-    let totalContributed = lump;
-
-    for (let m = 0; m <= totalMonths; m++) {
-      if (m > 0) {
-        portfolioValue = portfolioValue * (1 + monthlyRate) + sip;
-        totalContributed += sip;
-      }
-      portfolioValues.push(portfolioValue);
-      contributedValues.push(totalContributed);
+    // Compute 10yr CAGR for a given monthly price map
+    function getCAGR(monthly) {
+      const dates = Object.keys(monthly).sort();
+      if (dates.length < 24) return null;
+      const endDate = dates[dates.length - 1];
+      const tenYrsAgo = new Date(endDate);
+      tenYrsAgo.setFullYear(tenYrsAgo.getFullYear() - 10);
+      const histStart = dates.find(d => d >= tenYrsAgo.toISOString().split('T')[0]) || dates[0];
+      const histYears = (new Date(endDate) - new Date(histStart)) / (1000*60*60*24*365.25);
+      const annualRate = Math.pow(monthly[endDate] / monthly[histStart], 1 / histYears) - 1;
+      return { annualRate, histYears: Math.min(10, Math.round(histYears)) };
     }
 
-    const finalValue = portfolioValues[totalMonths];
-    const finalContributed = contributedValues[totalMonths];
-    const totalGain = finalValue - finalContributed;
-    const totalGainPct = (totalGain / finalContributed) * 100;
+    const cagrA  = getCAGR(monthlyA);
+    const cagrB  = getCAGR(monthlyB);
+    const cagrSP = getCAGR(monthlySP);
+    if (!cagrA)  throw new Error(`Not enough historical data for "${tA}".`);
+    if (!cagrB)  throw new Error(`Not enough historical data for "${tB}".`);
+    if (!cagrSP) throw new Error('Not enough S&P 500 historical data.');
 
-    // Chart labels — yearly
-    const projLabels = Array.from({length: totalMonths+1}, (_,i) => {
-      if (i % 12 === 0) return `Yr ${i/12}`;
-      return '';
-    });
+    // Project a series given annual rate
+    function project(annualRate) {
+      const monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
+      const totalMonths = years * 12;
+      const portfolio = [], contributed = [];
+      let pv = lump, tc = lump;
+      for (let m = 0; m <= totalMonths; m++) {
+        if (m > 0) { pv = pv * (1 + monthlyRate) + sip; tc += sip; }
+        portfolio.push(pv);
+        contributed.push(tc);
+      }
+      return { portfolio, contributed, final: portfolio[totalMonths], finalContributed: contributed[totalMonths] };
+    }
 
-    const histYearsActual = Math.min(10, Math.round(histYears));
+    const projA  = project(cagrA.annualRate);
+    const projB  = project(cagrB.annualRate);
+    const projSP = project(cagrSP.annualRate);
+
+    const totalMonths = years * 12;
+    const projLabels = Array.from({length: totalMonths+1}, (_,i) => i % 12 === 0 ? `Yr ${i/12}` : '');
+
+    // Contribution line is identical for all — use projA's
+    const contributed = projA.contributed;
+    const finalContributed = projA.finalContributed;
+
+    // Winner among user picks
+    const winnerIsA = projA.final >= projB.final;
+
+    function projCardHTML(ticker, slot, rate, histYrs, finalVal, finalContrib) {
+      const gain = finalVal - finalContrib;
+      const gainPct = (gain / finalContrib) * 100;
+      const mult = (finalVal / finalContrib).toFixed(2);
+      const isWinner = (slot === 'fa' && winnerIsA) || (slot === 'fb' && !winnerIsA);
+      const badgeHTML = isWinner
+        ? '<div class="winner-badge">&#9650; Winner</div>'
+        : slot === 'sp'
+          ? '<div class="winner-badge" style="background:rgba(191,90,242,0.1);color:#bf5af2;border-color:rgba(191,90,242,0.25)">&#9642; Benchmark</div>'
+          : '<div style="height:21px;margin-bottom:10px"></div>';
+      return `
+        <div class="result-card card-${slot === 'fa' ? 'a' : slot === 'fb' ? 'b' : 'sp'}">
+          ${badgeHTML}
+          <div class="rc-ticker">${ticker}</div>
+          <div class="rc-dates">${histYrs}-yr historical CAGR &nbsp;&middot;&nbsp; ${years}-yr projection</div>
+          <div class="rc-present">${fmtK(finalVal)}</div>
+          <div class="rc-invested">from ${fmtK(finalContrib)} contributed</div>
+          <div class="rc-return gain">+${fmtK(gain)}</div>
+          <div class="rc-pct gain">+${fmt(gainPct)}%</div>
+          <div class="mini-stats">
+            <div class="mini-stat"><div class="mini-stat-label">Ann. Rate Used</div><div class="mini-stat-value gain">${(rate*100).toFixed(2)}%</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Multiplier</div><div class="mini-stat-value">${mult}x</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Lump Sum</div><div class="mini-stat-value">${lump>0?'$'+fmt(lump):'—'}</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Monthly SIP</div><div class="mini-stat-value">${sip>0?'$'+fmt(sip):' —'}</div></div>
+          </div>
+        </div>`;
+    }
 
     document.getElementById('futureResult').innerHTML = `
-      <div class="projection-hero">
-        <div class="proj-disclaimer">&#9888; Projection based on historical returns &mdash; not a guarantee</div>
-        <div class="proj-ticker-label">${ticker}</div>
-        <div class="proj-horizon">${histYearsActual}-year historical annualised return: ${(annualRate*100).toFixed(2)}% &nbsp;&middot;&nbsp; ${years}-year projection</div>
-
-        <div class="proj-value-row">
-          <div class="proj-value-block">
-            <div class="proj-value-label">Projected Value</div>
-            <div class="proj-big projected">${fmtK(finalValue)}</div>
-            <div class="proj-sub gain">+${fmtK(totalGain)} gain &nbsp;(+${fmt(totalGainPct)}%)</div>
-          </div>
-          <div class="proj-divider-line"></div>
-          <div class="proj-value-block">
-            <div class="proj-value-label">Total Contributed</div>
-            <div class="proj-big contributed">${fmtK(finalContributed)}</div>
-            <div class="proj-sub">${lump>0?'$'+fmt(lump)+' lump sum':''}${lump>0&&sip>0?' + ':''}${sip>0?'$'+fmt(sip)+'/mo':''}</div>
-          </div>
-        </div>
-
-        <div class="proj-stats">
-          <div class="proj-stat">
-            <div class="proj-stat-label">Ann. Return Used</div>
-            <div class="proj-stat-value gain">${(annualRate*100).toFixed(2)}%</div>
-          </div>
-          <div class="proj-stat">
-            <div class="proj-stat-label">Time Horizon</div>
-            <div class="proj-stat-value">${years} years</div>
-          </div>
-          <div class="proj-stat">
-            <div class="proj-stat-label">Multiplier</div>
-            <div class="proj-stat-value">${(finalValue/finalContributed).toFixed(2)}x</div>
-          </div>
-          <div class="proj-stat">
-            <div class="proj-stat-label">Total Gain</div>
-            <div class="proj-stat-value gain">+${fmtK(totalGain)}</div>
-          </div>
-        </div>
+      <div class="proj-disclaimer" style="display:inline-flex;align-items:center;gap:6px;font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:#ff9f0a;background:rgba(255,159,10,0.1);border:1px solid rgba(255,159,10,0.2);border-radius:20px;padding:4px 14px;margin-bottom:16px;">
+        &#9888; Projections based on historical returns &mdash; not a guarantee
       </div>
-
+      <div class="compare-grid">
+        ${projCardHTML(tA,  'fa', cagrA.annualRate,  cagrA.histYears,  projA.final,  finalContributed)}
+        ${projCardHTML(tB,  'fb', cagrB.annualRate,  cagrB.histYears,  projB.final,  finalContributed)}
+        ${projCardHTML('S&P 500','sp',cagrSP.annualRate,cagrSP.histYears,projSP.final,finalContributed)}
+      </div>
       <div class="chart-card">
         <div class="chart-header">
-          <span class="chart-title">Growth Projection</span>
+          <span class="chart-title">Projected Portfolio Growth</span>
           <div class="chart-legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#0a84ff"></div>Portfolio Value</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#252d40"></div>Amount Contributed</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#0a84ff"></div>${tA}</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#30d158"></div>${tB}</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#bf5af2"></div>S&P 500</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#252d40;border:1px solid #4a5568;border-radius:50%"></div>Contributed</div>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="futureChartCanvas"></canvas></div>
       </div>
-
       <div class="proj-fine-print">
-        This projection uses ${ticker}'s ${histYearsActual}-year annualised historical return of ${(annualRate*100).toFixed(2)}% as the assumed rate of growth. Returns are compounded monthly. The projected value assumes this rate continues unchanged into the future — actual returns will vary and could be significantly higher or lower. This is not financial advice. Past performance is not indicative of future results.
+        Projections use each asset's ${Math.min(cagrA.histYears, cagrB.histYears, cagrSP.histYears)}&ndash;10 year annualised historical CAGR as the assumed growth rate, compounded monthly. ${tA}: ${(cagrA.annualRate*100).toFixed(2)}% &nbsp;|&nbsp; ${tB}: ${(cagrB.annualRate*100).toFixed(2)}% &nbsp;|&nbsp; S&P 500: ${(cagrSP.annualRate*100).toFixed(2)}%. Actual returns will vary and could be significantly higher or lower. This is not financial advice. Past performance is not indicative of future results.
       </div>`;
 
     document.getElementById('futureResult').style.display = 'block';
@@ -1179,27 +1199,10 @@ async function calculateFuture() {
       data: {
         labels: projLabels,
         datasets: [
-          {
-            label: 'Portfolio Value',
-            data: portfolioValues,
-            borderColor: '#0a84ff',
-            backgroundColor: 'rgba(10,132,255,0.08)',
-            borderWidth: 2,
-            pointRadius: 0,
-            tension: 0.3,
-            fill: true,
-          },
-          {
-            label: 'Amount Contributed',
-            data: contributedValues,
-            borderColor: '#252d40',
-            backgroundColor: 'rgba(37,45,64,0.4)',
-            borderWidth: 2,
-            borderDash: [4,3],
-            pointRadius: 0,
-            tension: 0,
-            fill: true,
-          }
+          { label: tA,        data: projA.portfolio,  borderColor:'#0a84ff', backgroundColor:'rgba(10,132,255,0.05)',  borderWidth:2, pointRadius:0, tension:0.3, fill:false },
+          { label: tB,        data: projB.portfolio,  borderColor:'#30d158', backgroundColor:'rgba(48,209,88,0.05)',   borderWidth:2, pointRadius:0, tension:0.3, fill:false },
+          { label: 'S&P 500', data: projSP.portfolio, borderColor:'#bf5af2', backgroundColor:'rgba(191,90,242,0.04)',  borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.3, fill:false },
+          { label: 'Contributed', data: contributed,  borderColor:'#252d40', backgroundColor:'rgba(37,45,64,0.35)',    borderWidth:1, borderDash:[3,3], pointRadius:0, tension:0, fill:true },
         ]
       },
       options: {
@@ -1217,8 +1220,7 @@ async function calculateFuture() {
             callbacks: {
               title: (items) => {
                 const mo = items[0].dataIndex;
-                const yr = Math.floor(mo/12);
-                const rem = mo % 12;
+                const yr = Math.floor(mo/12), rem = mo%12;
                 return rem === 0 ? `Year ${yr}` : `Year ${yr}, Month ${rem}`;
               },
               label: (item) => ` ${item.dataset.label}   ${fmtK(item.raw)}`
@@ -1243,14 +1245,13 @@ async function calculateFuture() {
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   const id = document.activeElement.id;
-  if (['tickerA','tickerB'].includes(id)) return;
-  if (id === 'futTicker') return;
+  if (['tickerA','tickerB','futTickerA','futTickerB'].includes(id)) return;
   if (activeTab === 'past') calculatePast();
   else calculateFuture();
 });
 
 // Inject dropdowns
-['A','B','F'].forEach(slot => {
+['A','B','F','FA','FB'].forEach(slot => {
   const dd = document.createElement('div');
   dd.id = 'dropdown' + slot;
   dd.className = 'ticker-dropdown';
