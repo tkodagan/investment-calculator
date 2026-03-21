@@ -43,7 +43,7 @@
     background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(10,132,255,0.08) 0%, transparent 70%);
   }
 
-  header { text-align: center; margin-bottom: 56px; }
+  header { text-align: center; margin-bottom: 48px; }
 
   .eyebrow {
     font-size: 0.65rem;
@@ -71,6 +71,49 @@
     letter-spacing: 0.04em;
   }
 
+  /* ── Tabs ── */
+  .tabs-wrap {
+    width: 100%;
+    max-width: 960px;
+    margin-bottom: 20px;
+  }
+
+  .tabs {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 2px;
+  }
+
+  .tab-btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    background: transparent;
+    color: var(--muted);
+    box-shadow: none;
+    margin-top: 0;
+    width: auto;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(10,132,255,0.35);
+  }
+
+  .tab-btn:hover:not(.active) { color: var(--text); background: var(--surface-2); }
+
+  /* ── Shared card styles ── */
   .card {
     width: 100%;
     max-width: 960px;
@@ -159,6 +202,14 @@
     margin-bottom: 8px;
   }
 
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  /* Autocomplete */
   .autocomplete-wrap { position: relative; }
   .autocomplete-wrap input { text-transform: uppercase; }
 
@@ -185,13 +236,12 @@
 
   .dropdown-item:last-child { border-bottom: none; }
   .dropdown-item:hover, .dropdown-item.active { background: rgba(10,132,255,0.08); }
-
   .dropdown-symbol { font-size: 0.9rem; font-weight: 500; color: var(--text); letter-spacing: 0.05em; min-width: 64px; }
   .dropdown-name { font-size: 0.72rem; color: var(--muted); flex: 1; padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: none; letter-spacing: 0.02em; }
   .dropdown-type { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); opacity: 0.5; flex-shrink: 0; }
   .dropdown-msg { padding: 12px 16px; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; }
 
-  button {
+  button.primary-btn {
     width: 100%;
     background: var(--accent);
     color: #ffffff;
@@ -209,11 +259,12 @@
     box-shadow: 0 4px 20px rgba(10,132,255,0.3);
   }
 
-  button:hover { background: #1a8fff; box-shadow: 0 6px 24px rgba(10,132,255,0.45); }
-  button:active { transform: scale(0.99); box-shadow: none; }
-  button:disabled { background: var(--border-bright); color: var(--muted); cursor: not-allowed; box-shadow: none; }
+  button.primary-btn:hover { background: #1a8fff; box-shadow: 0 6px 24px rgba(10,132,255,0.45); }
+  button.primary-btn:active { transform: scale(0.99); box-shadow: none; }
+  button.primary-btn:disabled { background: var(--border-bright); color: var(--muted); cursor: not-allowed; box-shadow: none; }
 
-  #status {
+  /* ── Status / loading ── */
+  .status-msg {
     width: 100%;
     max-width: 960px;
     margin-top: 16px;
@@ -222,9 +273,9 @@
     letter-spacing: 0.06em;
     color: var(--loss);
     padding: 16px 20px;
-    background: rgba(255,107,87,0.06);
-    border: 1px solid rgba(255,107,87,0.2);
-    border-radius: 3px;
+    background: rgba(255,69,58,0.06);
+    border: 1px solid rgba(255,69,58,0.2);
+    border-radius: 12px;
   }
 
   .loading-text {
@@ -236,9 +287,9 @@
     padding: 20px 0;
   }
 
-  #result { width: 100%; max-width: 960px; margin-top: 16px; display: none; }
+  /* ── Past tab results ── */
+  #pastResult { width: 100%; max-width: 960px; margin-top: 16px; display: none; }
 
-  /* ── Result cards ── */
   .compare-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -345,15 +396,131 @@
   }
 
   .chart-title { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
-
-  .chart-legend { display: flex; gap: 16px; }
-
+  .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; letter-spacing: 0.06em; color: var(--muted); }
-
   .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
   .chart-wrap { position: relative; height: 240px; }
 
+  /* ── Future tab ── */
+  #futureResult { width: 100%; max-width: 960px; margin-top: 16px; display: none; }
+
+  .projection-hero {
+    background: var(--surface);
+    border: 1px solid rgba(10,132,255,0.2);
+    border-radius: 20px;
+    padding: 36px 40px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .projection-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at top left, rgba(10,132,255,0.07), transparent 55%);
+    pointer-events: none;
+  }
+
+  .projection-hero > * { position: relative; z-index: 1; }
+
+  .proj-disclaimer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #ff9f0a;
+    background: rgba(255,159,10,0.1);
+    border: 1px solid rgba(255,159,10,0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    margin-bottom: 20px;
+  }
+
+  .proj-ticker-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .proj-horizon {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 24px;
+  }
+
+  .proj-value-row {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 0;
+    margin-bottom: 28px;
+  }
+
+  .proj-divider-line { background: var(--border-bright); }
+
+  .proj-value-block { padding-right: 32px; }
+  .proj-value-block:last-child { padding-right: 0; padding-left: 32px; }
+
+  .proj-value-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .proj-big {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .proj-big.projected { color: var(--gain); }
+  .proj-big.contributed { color: var(--text); }
+
+  .proj-sub {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .proj-sub.gain { color: var(--gain-dim); }
+
+  .proj-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .proj-stat { background: var(--bg); padding: 12px 16px; }
+  .proj-stat-label { font-size: 0.54rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .proj-stat-value { font-size: 0.9rem; font-weight: 500; color: var(--text); }
+  .proj-stat-value.gain { color: var(--gain); }
+
+  .proj-fine-print {
+    margin-top: 16px;
+    font-size: 0.62rem;
+    color: var(--muted);
+    line-height: 1.7;
+    letter-spacing: 0.02em;
+    padding: 16px 20px;
+    background: rgba(255,159,10,0.04);
+    border: 1px solid rgba(255,159,10,0.1);
+    border-radius: 10px;
+  }
+
+  /* ── Footer ── */
   footer {
     margin-top: 48px;
     font-size: 0.62rem;
@@ -363,79 +530,145 @@
     opacity: 0.5;
   }
 
+  /* ── Responsive ── */
   @media (max-width: 760px) {
     .compare-grid { grid-template-columns: 1fr; }
+    .proj-value-row { grid-template-columns: 1fr; }
+    .proj-divider-line { display: none; }
+    .proj-value-block, .proj-value-block:last-child { padding: 0 0 20px 0; }
+    .proj-stats { grid-template-columns: 1fr 1fr; }
   }
 
   @media (max-width: 560px) {
-    .ticker-row-inputs, .bottom-row { grid-template-columns: 1fr; }
+    .ticker-row-inputs, .bottom-row, .three-col { grid-template-columns: 1fr; }
     .card { padding: 28px 20px; }
-    .result-card { padding: 22px 18px; }
-    .chart-card { padding: 20px 16px; }
+    .result-card, .projection-hero, .chart-card { padding: 22px 18px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="eyebrow">Historical Return Calculator</div>
+  <div class="eyebrow">Investment Calculator</div>
   <h1>What would it be<br>worth <em>today?</em></h1>
-  <p class="subtitle">Compare two investments over the same period.</p>
+  <p class="subtitle">Compare past performance or project future growth.</p>
 </header>
 
-<div class="card">
-  <div class="ticker-row-inputs">
-    <div class="field ticker-a">
-      <label>Ticker A</label>
-      <div class="autocomplete-wrap">
-        <input type="text" id="tickerA" placeholder="AAPL" maxlength="10"
-               autocomplete="off" autocorrect="off" spellcheck="false"
-               oninput="onTickerInput('A', this.value)"
-               onkeydown="onTickerKeydown('A', event)"
-               onblur="hideDropdownDelayed('A')">
-      </div>
-    </div>
-    <div class="field ticker-b">
-      <label>Ticker B</label>
-      <div class="autocomplete-wrap">
-        <input type="text" id="tickerB" placeholder="SPY" maxlength="10"
-               autocomplete="off" autocorrect="off" spellcheck="false"
-               oninput="onTickerInput('B', this.value)"
-               onkeydown="onTickerKeydown('B', event)"
-               onblur="hideDropdownDelayed('B')">
-      </div>
-    </div>
+<!-- Tab switcher -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('past')">&#9664; Past Value</button>
+    <button class="tab-btn" onclick="switchTab('future')">Future Projection &#9654;</button>
   </div>
-
-  <div class="divider">same investment &mdash; same period</div>
-
-  <div class="bottom-row">
-    <div class="field">
-      <label>Investment Date</label>
-      <input type="date" id="startDate">
-    </div>
-    <div class="field">
-      <label>Amount (USD)</label>
-      <input type="number" id="amount" placeholder="10000" min="1" step="any">
-    </div>
-  </div>
-
-  <button id="calcBtn" onclick="calculate()">Compare Returns</button>
 </div>
 
-<div class="loading-text" id="loadingText">Fetching price data&hellip;</div>
-<div id="status"></div>
-<div id="result"></div>
+<!-- ══ PAST TAB ══ -->
+<div id="pastTab">
+  <div class="card">
+    <div class="ticker-row-inputs">
+      <div class="field ticker-a">
+        <label>Ticker A</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="tickerA" placeholder="AAPL" maxlength="10"
+                 autocomplete="off" autocorrect="off" spellcheck="false"
+                 oninput="onTickerInput('A', this.value)"
+                 onkeydown="onTickerKeydown('A', event)"
+                 onblur="hideDropdownDelayed('A')">
+        </div>
+      </div>
+      <div class="field ticker-b">
+        <label>Ticker B</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="tickerB" placeholder="SPY" maxlength="10"
+                 autocomplete="off" autocorrect="off" spellcheck="false"
+                 oninput="onTickerInput('B', this.value)"
+                 onkeydown="onTickerKeydown('B', event)"
+                 onblur="hideDropdownDelayed('B')">
+        </div>
+      </div>
+    </div>
+    <div class="divider">same investment &mdash; same period</div>
+    <div class="bottom-row">
+      <div class="field">
+        <label>Investment Date</label>
+        <input type="date" id="startDate">
+      </div>
+      <div class="field">
+        <label>Amount (USD)</label>
+        <input type="number" id="amount" placeholder="10000" min="1" step="any">
+      </div>
+    </div>
+    <button class="primary-btn" id="pastBtn" onclick="calculatePast()">Compare Returns</button>
+  </div>
+  <div class="loading-text" id="pastLoading">Fetching price data&hellip;</div>
+  <div class="status-msg" id="pastStatus"></div>
+  <div id="pastResult"></div>
+</div>
+
+<!-- ══ FUTURE TAB ══ -->
+<div id="futureTab" style="display:none; width:100%; max-width:960px;">
+  <div class="card">
+    <div class="field" style="max-width:340px;">
+      <label>Ticker / Symbol</label>
+      <div class="autocomplete-wrap">
+        <input type="text" id="futTicker" placeholder="AAPL, SPY, QQQ..." maxlength="10"
+               autocomplete="off" autocorrect="off" spellcheck="false"
+               oninput="onTickerInput('F', this.value)"
+               onkeydown="onTickerKeydown('F', event)"
+               onblur="hideDropdownDelayed('F')">
+      </div>
+    </div>
+    <div class="divider">projection parameters</div>
+    <div class="three-col">
+      <div class="field">
+        <label>Lump Sum (USD)</label>
+        <input type="number" id="futLump" placeholder="10000" min="0" step="any">
+      </div>
+      <div class="field">
+        <label>Monthly SIP (USD)</label>
+        <input type="number" id="futSIP" placeholder="500" min="0" step="any">
+      </div>
+      <div class="field">
+        <label>Time Horizon (Years)</label>
+        <input type="number" id="futYears" placeholder="10" min="1" max="50" step="1" value="10">
+      </div>
+    </div>
+    <button class="primary-btn" id="futBtn" onclick="calculateFuture()">Project Growth</button>
+  </div>
+  <div class="loading-text" id="futLoading">Fetching historical returns&hellip;</div>
+  <div class="status-msg" id="futStatus"></div>
+  <div id="futureResult"></div>
+</div>
 
 <footer>Data provided by Yahoo Finance &bull; Past performance does not indicate future results</footer>
 
 <script>
-let growthChart = null;
+// ── Tab switching ──
+let activeTab = 'past';
+let pastChart = null;
+let futureChart = null;
 
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('pastTab').style.display   = tab === 'past'   ? 'contents' : 'none';
+  document.getElementById('futureTab').style.display = tab === 'future' ? 'block'    : 'none';
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', (i === 0 && tab === 'past') || (i === 1 && tab === 'future'));
+  });
+}
+
+// ── Formatting ──
 function fmt(n) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+function fmtK(n) {
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(1) + 'K';
+  return '$' + fmt(n);
+}
 function fmtDate(dateStr) {
+  if (!dateStr) return '';
   const [y, m, d] = dateStr.split('-');
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
@@ -446,15 +679,17 @@ function fmtShort(dateStr) {
   return `${months[parseInt(m)-1]} '${y.slice(2)}`;
 }
 
-function setStatus(msg) {
-  const el = document.getElementById('status');
+// ── Status helpers ──
+function setStatus(id, msg) {
+  const el = document.getElementById(id);
   el.textContent = msg;
   el.style.display = msg ? 'block' : 'none';
 }
-function setLoading(on) {
-  document.getElementById('loadingText').style.display = on ? 'block' : 'none';
-  document.getElementById('calcBtn').disabled = on;
-  document.getElementById('calcBtn').textContent = on ? 'Fetching data...' : 'Compare Returns';
+function setLoading(id, btnId, on, label) {
+  document.getElementById(id).style.display = on ? 'block' : 'none';
+  const btn = document.getElementById(btnId);
+  btn.disabled = on;
+  btn.textContent = on ? 'Fetching data...' : label;
 }
 
 // ── Ticker list ──
@@ -550,10 +785,8 @@ const TICKERS = [
   { s:'MRNA', n:'Moderna Inc.',                        t:'Stock' },
 ];
 
-const ddState = {
-  A: { items: [], activeIndex: -1 },
-  B: { items: [], activeIndex: -1 },
-};
+const ddState = { A:{items:[],activeIndex:-1}, B:{items:[],activeIndex:-1}, F:{items:[],activeIndex:-1} };
+const ddInputId = { A:'tickerA', B:'tickerB', F:'futTicker' };
 
 function onTickerInput(slot, val) {
   const q = val.trim().toUpperCase();
@@ -563,35 +796,34 @@ function onTickerInput(slot, val) {
   ddState[slot].activeIndex = -1;
   const dd = document.getElementById('dropdown' + slot);
   positionDropdown(slot);
-  if (matches.length === 0) {
-    dd.innerHTML = '<div class="dropdown-msg">No matches &mdash; type the full symbol</div>';
-  } else {
-    dd.innerHTML = matches.map((m, i) => `
-      <div class="dropdown-item" data-index="${i}" onmousedown="selectTicker('${slot}', ${i})">
-        <span class="dropdown-symbol">${m.s}</span>
-        <span class="dropdown-name">${m.n}</span>
-        <span class="dropdown-type">${m.t}</span>
-      </div>`).join('');
-  }
+  dd.innerHTML = matches.length === 0
+    ? '<div class="dropdown-msg">No matches &mdash; type the full symbol</div>'
+    : matches.map((m, i) => `
+        <div class="dropdown-item" onmousedown="selectTicker('${slot}', ${i})">
+          <span class="dropdown-symbol">${m.s}</span>
+          <span class="dropdown-name">${m.n}</span>
+          <span class="dropdown-type">${m.t}</span>
+        </div>`).join('');
   dd.style.display = 'block';
 }
 
 function positionDropdown(slot) {
-  const input = document.getElementById('ticker' + slot);
+  const input = document.getElementById(ddInputId[slot]);
   const dd = document.getElementById('dropdown' + slot);
   const rect = input.getBoundingClientRect();
-  dd.style.top = (rect.bottom + 4) + 'px';
-  dd.style.left = rect.left + 'px';
+  dd.style.top  = (rect.bottom + 4) + 'px';
+  dd.style.left  = rect.left + 'px';
   dd.style.width = rect.width + 'px';
 }
 
 function selectTicker(slot, index) {
   const item = ddState[slot].items[index];
   if (!item) return;
-  document.getElementById('ticker' + slot).value = item.s;
+  document.getElementById(ddInputId[slot]).value = item.s;
   hideDropdown(slot);
   if (slot === 'A') document.getElementById('tickerB').focus();
-  else document.getElementById('startDate').focus();
+  else if (slot === 'B') document.getElementById('startDate').focus();
+  else document.getElementById('futLump').focus();
 }
 
 function hideDropdown(slot) {
@@ -599,57 +831,43 @@ function hideDropdown(slot) {
   ddState[slot].items = [];
   ddState[slot].activeIndex = -1;
 }
-
-function hideDropdownDelayed(slot) {
-  setTimeout(() => hideDropdown(slot), 200);
-}
+function hideDropdownDelayed(slot) { setTimeout(() => hideDropdown(slot), 200); }
 
 function onTickerKeydown(slot, e) {
   const dd = document.getElementById('dropdown' + slot);
   if (dd.style.display === 'none') return;
   const items = dd.querySelectorAll('.dropdown-item');
   const state = ddState[slot];
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    state.activeIndex = Math.min(state.activeIndex + 1, items.length - 1);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    state.activeIndex = Math.max(state.activeIndex - 1, -1);
-  } else if (e.key === 'Enter') {
+  if (e.key === 'ArrowDown') { e.preventDefault(); state.activeIndex = Math.min(state.activeIndex+1, items.length-1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); state.activeIndex = Math.max(state.activeIndex-1, -1); }
+  else if (e.key === 'Enter') {
     if (state.activeIndex >= 0) { e.preventDefault(); selectTicker(slot, state.activeIndex); }
-    else { hideDropdown(slot); }
+    else hideDropdown(slot);
     return;
-  } else if (e.key === 'Escape') {
-    hideDropdown(slot); return;
-  }
+  } else if (e.key === 'Escape') { hideDropdown(slot); return; }
   items.forEach((el, i) => el.classList.toggle('active', i === state.activeIndex));
 }
 
 window.addEventListener('scroll', () => {
-  ['A','B'].forEach(s => {
-    if (document.getElementById('dropdown' + s).style.display !== 'none') positionDropdown(s);
+  ['A','B','F'].forEach(s => {
+    if (document.getElementById('dropdown'+s).style.display !== 'none') positionDropdown(s);
   });
 }, true);
 window.addEventListener('resize', () => {
-  ['A','B'].forEach(s => {
-    if (document.getElementById('dropdown' + s).style.display !== 'none') positionDropdown(s);
+  ['A','B','F'].forEach(s => {
+    if (document.getElementById('dropdown'+s).style.display !== 'none') positionDropdown(s);
   });
 });
 
-// ── API — Yahoo Finance (no key, no rate limit) ──
-
-// Returns a map of { 'YYYY-MM-DD': adjustedClose } for monthly data
+// ── API ──
 async function fetchMonthly(ticker) {
-  // Use 20yr range, 1mo interval
   const url = `/api/yahoo?ticker=${encodeURIComponent(ticker)}&interval=1mo&range=20y`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`"${ticker}" not found or network error.`);
   const data = await resp.json();
   if (data.error) throw new Error(data.error);
-  return data; // { 'YYYY-MM-DD': price, ... }
+  return data;
 }
-
-// Returns most recent trading day price and date
 async function fetchLatest(ticker) {
   const url = `/api/yahoo?ticker=${encodeURIComponent(ticker)}&interval=1d&range=5d`;
   const resp = await fetch(url);
@@ -657,57 +875,45 @@ async function fetchLatest(ticker) {
   const data = await resp.json();
   if (data.error || !Object.keys(data).length) return null;
   const dates = Object.keys(data).sort();
-  const lastDate = dates[dates.length - 1];
-  return { date: lastDate, price: data[lastDate] };
+  return { date: dates[dates.length-1], price: data[dates[dates.length-1]] };
 }
 
 function lastKey(obj) { return Object.keys(obj).sort().pop(); }
-
-function alignSeries(seriesMap, dates) {
-  const result = [];
+function alignSeries(map, dates) {
   let last = null;
-  for (const d of dates) {
-    if (seriesMap[d] !== undefined) last = seriesMap[d];
-    result.push(last);
-  }
-  return result;
+  return dates.map(d => { if (map[d] !== undefined) last = map[d]; return last; });
 }
 
-// ── Calculate ──
-async function calculate() {
+// ══ PAST TAB CALCULATION ══
+async function calculatePast() {
   const tA = document.getElementById('tickerA').value.trim().toUpperCase();
   const tB = document.getElementById('tickerB').value.trim().toUpperCase();
   const startDate = document.getElementById('startDate').value;
   const amount = parseFloat(document.getElementById('amount').value);
 
-  document.getElementById('result').style.display = 'none';
-  setStatus('');
+  document.getElementById('pastResult').style.display = 'none';
+  setStatus('pastStatus', '');
 
-  if (!tA) { setStatus('Please enter Ticker A.'); return; }
-  if (!tB) { setStatus('Please enter Ticker B.'); return; }
-  if (!startDate) { setStatus('Please select a start date.'); return; }
-  if (!amount || amount <= 0) { setStatus('Please enter a valid amount.'); return; }
+  if (!tA) { setStatus('pastStatus', 'Please enter Ticker A.'); return; }
+  if (!tB) { setStatus('pastStatus', 'Please enter Ticker B.'); return; }
+  if (!startDate) { setStatus('pastStatus', 'Please select a start date.'); return; }
+  if (!amount || amount <= 0) { setStatus('pastStatus', 'Please enter a valid amount.'); return; }
 
   const today = new Date().toISOString().split('T')[0];
-  if (startDate >= today) { setStatus('Start date must be in the past.'); return; }
+  if (startDate >= today) { setStatus('pastStatus', 'Start date must be in the past.'); return; }
+  const minDate = new Date(); minDate.setFullYear(minDate.getFullYear() - 20);
+  if (startDate < minDate.toISOString().split('T')[0]) { setStatus('pastStatus', 'Date range too far back (20 year max).'); return; }
 
-  const minDate = new Date();
-  minDate.setFullYear(minDate.getFullYear() - 20);
-  if (startDate < minDate.toISOString().split('T')[0]) {
-    setStatus('Date range too far back (20 year max on free tier).'); return;
-  }
-
-  setLoading(true);
+  setLoading('pastLoading', 'pastBtn', true, 'Compare Returns');
 
   try {
-    const BENCH = '^GSPC'; // S&P 500
+    const BENCH = '^GSPC';
     const [monthlyA, monthlyB, monthlySP] = await Promise.all([
       fetchMonthly(tA), fetchMonthly(tB), fetchMonthly(BENCH)
     ]);
 
     function resolveStart(monthly, sd) {
-      const keys = Object.keys(monthly).sort();
-      for (const k of keys) { if (k >= sd) return k; }
+      for (const k of Object.keys(monthly).sort()) { if (k >= sd) return k; }
       return null;
     }
 
@@ -716,37 +922,27 @@ async function calculate() {
     const startSP = resolveStart(monthlySP, startDate);
     if (!startA)  throw new Error(`No data for ${tA} at or after your start date.`);
     if (!startB)  throw new Error(`No data for ${tB} at or after your start date.`);
-    if (!startSP) throw new Error(`No S&P 500 data at or after your start date.`);
+    if (!startSP) throw new Error('No S&P 500 data at or after your start date.');
 
     const sharedStart = [startA, startB, startSP].sort().pop();
+    const sharedEnd   = [lastKey(monthlyA), lastKey(monthlyB), lastKey(monthlySP)].sort().pop();
 
-    const endA  = lastKey(monthlyA);
-    const endB  = lastKey(monthlyB);
-    const endSP = lastKey(monthlySP);
-    const sharedEnd = [endA, endB, endSP].sort().pop();
+    const buyA = monthlyA[sharedStart], buyB = monthlyB[sharedStart], buySP = monthlySP[sharedStart];
 
-    const buyA  = monthlyA[sharedStart];
-    const buyB  = monthlyB[sharedStart];
-    const buySP = monthlySP[sharedStart];
-
-    // Get latest prices — all three in parallel
-    let curA = monthlyA[endA],   curDateA = endA;
-    let curB = monthlyB[endB],   curDateB = endB;
-    let curSP = monthlySP[endSP], curDateSP = endSP;
+    let curA = monthlyA[lastKey(monthlyA)],   curDateA  = lastKey(monthlyA);
+    let curB = monthlyB[lastKey(monthlyB)],   curDateB  = lastKey(monthlyB);
+    let curSP= monthlySP[lastKey(monthlySP)], curDateSP = lastKey(monthlySP);
     try {
-      const [latA, latB, latSP] = await Promise.all([
-        fetchLatest(tA), fetchLatest(tB), fetchLatest(BENCH)
-      ]);
-      if (latA)  { curDateA  = latA.date;  curA  = latA.price;  }
-      if (latB)  { curDateB  = latB.date;  curB  = latB.price;  }
-      if (latSP) { curDateSP = latSP.date; curSP = latSP.price; }
-    } catch(e) { /* monthly fallback */ }
+      const [latA, latB, latSP] = await Promise.all([fetchLatest(tA), fetchLatest(tB), fetchLatest(BENCH)]);
+      if (latA)  { curDateA=latA.date;   curA=latA.price;   }
+      if (latB)  { curDateB=latB.date;   curB=latB.price;   }
+      if (latSP) { curDateSP=latSP.date; curSP=latSP.price; }
+    } catch(e) {}
 
-    // Build portfolio value maps for chart
     function buildMap(monthly, start, end, amt, buy) {
-      const keys = Object.keys(monthly).sort().filter(d => d >= start && d <= end);
       const map = {};
-      keys.forEach(d => { map[d] = (amt / buy) * monthly[d]; });
+      Object.keys(monthly).sort().filter(d => d >= start && d <= end)
+        .forEach(d => { map[d] = (amt/buy) * monthly[d]; });
       return map;
     }
 
@@ -754,36 +950,25 @@ async function calculate() {
     const mapB  = buildMap(monthlyB,  sharedStart, sharedEnd, amount, buyB);
     const mapSP = buildMap(monthlySP, sharedStart, sharedEnd, amount, buySP);
 
-    const allDates = [...new Set([...Object.keys(mapA), ...Object.keys(mapB), ...Object.keys(mapSP)])].sort();
+    const allDates = [...new Set([...Object.keys(mapA),...Object.keys(mapB),...Object.keys(mapSP)])].sort();
     const valuesA  = alignSeries(mapA,  allDates);
     const valuesB  = alignSeries(mapB,  allDates);
     const valuesSP = alignSeries(mapSP, allDates);
 
-    // Final stats
-    const finalA  = (amount / buyA)  * curA;
-    const finalB  = (amount / buyB)  * curB;
-    const finalSP = (amount / buySP) * curSP;
-    const gainA  = finalA  - amount, gainB  = finalB  - amount, gainSP = finalSP - amount;
-    const pctA   = (gainA  / amount) * 100;
-    const pctB   = (gainB  / amount) * 100;
-    const pctSP  = (gainSP / amount) * 100;
-    const yearsA  = (new Date(curDateA)  - new Date(sharedStart)) / (1000*60*60*24*365.25);
-    const yearsB  = (new Date(curDateB)  - new Date(sharedStart)) / (1000*60*60*24*365.25);
-    const yearsSP = (new Date(curDateSP) - new Date(sharedStart)) / (1000*60*60*24*365.25);
-    const cagrA  = yearsA  > 0 ? (Math.pow(finalA /amount, 1/yearsA)  - 1)*100 : 0;
-    const cagrB  = yearsB  > 0 ? (Math.pow(finalB /amount, 1/yearsB)  - 1)*100 : 0;
-    const cagrSP = yearsSP > 0 ? (Math.pow(finalSP/amount, 1/yearsSP) - 1)*100 : 0;
-
-    // Winner among user picks only (not benchmark)
+    const finalA=(amount/buyA)*curA, finalB=(amount/buyB)*curB, finalSP=(amount/buySP)*curSP;
+    const gainA=finalA-amount, gainB=finalB-amount, gainSP=finalSP-amount;
+    const pctA=(gainA/amount)*100, pctB=(gainB/amount)*100, pctSP=(gainSP/amount)*100;
+    const yearsA =(new Date(curDateA) -new Date(sharedStart))/(1000*60*60*24*365.25);
+    const yearsB =(new Date(curDateB) -new Date(sharedStart))/(1000*60*60*24*365.25);
+    const yearsSP=(new Date(curDateSP)-new Date(sharedStart))/(1000*60*60*24*365.25);
+    const cagrA =yearsA >0?(Math.pow(finalA /amount,1/yearsA) -1)*100:0;
+    const cagrB =yearsB >0?(Math.pow(finalB /amount,1/yearsB) -1)*100:0;
+    const cagrSP=yearsSP>0?(Math.pow(finalSP/amount,1/yearsSP)-1)*100:0;
     const winnerIsA = finalA >= finalB;
 
     function cardHTML(ticker, slot, startKey, curDate, curPrice, buyPrice, finalVal, gain, pct, cagr, badge) {
-      const isGain = gain >= 0;
-      const sign = isGain ? '+' : '';
-      const cls = isGain ? 'gain' : 'loss';
-      const badgeHTML = badge
-        ? `<div class="winner-badge">${badge}</div>`
-        : '<div style="height:21px;margin-bottom:10px"></div>';
+      const isGain=gain>=0, sign=isGain?'+':'', cls=isGain?'gain':'loss';
+      const badgeHTML = badge ? `<div class="winner-badge">${badge}</div>` : '<div style="height:21px;margin-bottom:10px"></div>';
       return `
         <div class="result-card card-${slot.toLowerCase()}">
           ${badgeHTML}
@@ -794,36 +979,22 @@ async function calculate() {
           <div class="rc-return ${cls}">${sign}$${fmt(Math.abs(gain))}</div>
           <div class="rc-pct ${cls}">${sign}${fmt(Math.abs(pct))}%</div>
           <div class="mini-stats">
-            <div class="mini-stat">
-              <div class="mini-stat-label">Ann. Return</div>
-              <div class="mini-stat-value ${cls}">${sign}${fmt(Math.abs(cagr))}%</div>
-            </div>
-            <div class="mini-stat">
-              <div class="mini-stat-label">Multiplier</div>
-              <div class="mini-stat-value">${(finalVal/amount).toFixed(2)}x</div>
-            </div>
-            <div class="mini-stat">
-              <div class="mini-stat-label">Buy Price</div>
-              <div class="mini-stat-value">$${fmt(buyPrice)}</div>
-            </div>
-            <div class="mini-stat">
-              <div class="mini-stat-label">Cur. Price</div>
-              <div class="mini-stat-value">$${fmt(curPrice)}</div>
-            </div>
+            <div class="mini-stat"><div class="mini-stat-label">Ann. Return</div><div class="mini-stat-value ${cls}">${sign}${fmt(Math.abs(cagr))}%</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Multiplier</div><div class="mini-stat-value">${(finalVal/amount).toFixed(2)}x</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Buy Price</div><div class="mini-stat-value">$${fmt(buyPrice)}</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Cur. Price</div><div class="mini-stat-value">$${fmt(curPrice)}</div></div>
           </div>
         </div>`;
     }
 
-    // Thin chart labels
-    const step = Math.max(1, Math.floor(allDates.length / 10));
-    const chartLabels = allDates.map((d, i) =>
-      (i % step === 0 || i === allDates.length - 1) ? fmtShort(d) : '');
+    const step = Math.max(1, Math.floor(allDates.length/10));
+    const chartLabels = allDates.map((d,i) => (i%step===0||i===allDates.length-1)?fmtShort(d):'');
 
-    document.getElementById('result').innerHTML = `
+    document.getElementById('pastResult').innerHTML = `
       <div class="compare-grid">
-        ${cardHTML(tA, 'A', sharedStart, curDateA, curA, buyA, finalA, gainA, pctA, cagrA, winnerIsA ? '&#9650; Winner' : null)}
-        ${cardHTML(tB, 'B', sharedStart, curDateB, curB, buyB, finalB, gainB, pctB, cagrB, !winnerIsA ? '&#9650; Winner' : null)}
-        ${cardHTML('S&P 500', 'sp', sharedStart, curDateSP, curSP, buySP, finalSP, gainSP, pctSP, cagrSP, '&#9642; Benchmark')}
+        ${cardHTML(tA,'A',sharedStart,curDateA,curA,buyA,finalA,gainA,pctA,cagrA,winnerIsA?'&#9650; Winner':null)}
+        ${cardHTML(tB,'B',sharedStart,curDateB,curB,buyB,finalB,gainB,pctB,cagrB,!winnerIsA?'&#9650; Winner':null)}
+        ${cardHTML('S&P 500','sp',sharedStart,curDateSP,curSP,buySP,finalSP,gainSP,pctSP,cagrSP,'&#9642; Benchmark')}
       </div>
       <div class="chart-card">
         <div class="chart-header">
@@ -834,47 +1005,199 @@ async function calculate() {
             <div class="legend-item"><div class="legend-dot" style="background:#bf5af2"></div>S&P 500</div>
           </div>
         </div>
-        <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
+        <div class="chart-wrap"><canvas id="pastChart"></canvas></div>
       </div>`;
 
-    document.getElementById('result').style.display = 'block';
+    document.getElementById('pastResult').style.display = 'block';
+    if (pastChart) { pastChart.destroy(); pastChart = null; }
 
-    if (growthChart) { growthChart.destroy(); growthChart = null; }
-
-    growthChart = new Chart(document.getElementById('growthChart').getContext('2d'), {
+    pastChart = new Chart(document.getElementById('pastChart').getContext('2d'), {
       type: 'line',
       data: {
         labels: chartLabels,
         datasets: [
+          { label:tA,        data:valuesA,  borderColor:'#0a84ff', backgroundColor:'rgba(10,132,255,0.05)', borderWidth:2, pointRadius:0, tension:0.3, fill:true },
+          { label:tB,        data:valuesB,  borderColor:'#30d158', backgroundColor:'rgba(48,209,88,0.05)',  borderWidth:2, pointRadius:0, tension:0.3, fill:true },
+          { label:'S&P 500', data:valuesSP, borderColor:'#bf5af2', backgroundColor:'rgba(191,90,242,0.04)', borderWidth:2, borderDash:[5,4], pointRadius:0, tension:0.3, fill:true },
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:'#0f1117', borderColor:'#252d40', borderWidth:1,
+            titleColor:'#4a5568', bodyColor:'#f2f4f8',
+            titleFont:{family:"'DM Mono', monospace",size:11},
+            bodyFont:{family:"'DM Mono', monospace",size:12},
+            padding:12,
+            callbacks:{
+              title:(items)=>allDates[items[0].dataIndex]?fmtDate(allDates[items[0].dataIndex]):'',
+              label:(item)=>` ${item.dataset.label}   $${fmt(item.raw)}`
+            }
+          }
+        },
+        scales:{
+          x:{ grid:{color:'rgba(255,255,255,0.03)'}, ticks:{color:'#4a5568',font:{family:"'DM Mono', monospace",size:10},maxRotation:0}, border:{color:'#1c2030'} },
+          y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#4a5568',font:{family:"'DM Mono', monospace",size:10},callback:v=>'$'+(v>=1000?(v/1000).toFixed(0)+'k':fmt(v))}, border:{color:'#1c2030'} }
+        }
+      }
+    });
+
+  } catch(err) {
+    setStatus('pastStatus', err.message || 'Something went wrong. Please try again.');
+  } finally {
+    setLoading('pastLoading', 'pastBtn', false, 'Compare Returns');
+  }
+}
+
+// ══ FUTURE TAB CALCULATION ══
+async function calculateFuture() {
+  const ticker = document.getElementById('futTicker').value.trim().toUpperCase();
+  const lump   = parseFloat(document.getElementById('futLump').value)  || 0;
+  const sip    = parseFloat(document.getElementById('futSIP').value)   || 0;
+  const years  = parseInt(document.getElementById('futYears').value)   || 10;
+
+  document.getElementById('futureResult').style.display = 'none';
+  setStatus('futStatus', '');
+
+  if (!ticker) { setStatus('futStatus', 'Please enter a ticker symbol.'); return; }
+  if (lump <= 0 && sip <= 0) { setStatus('futStatus', 'Please enter a lump sum, a monthly SIP, or both.'); return; }
+  if (years < 1 || years > 50) { setStatus('futStatus', 'Time horizon must be between 1 and 50 years.'); return; }
+
+  setLoading('futLoading', 'futBtn', true, 'Project Growth');
+
+  try {
+    // Fetch 10yr of monthly data to compute annualised historical return
+    const monthly = await fetchMonthly(ticker);
+    const dates = Object.keys(monthly).sort();
+    if (dates.length < 24) throw new Error(`Not enough historical data for "${ticker}".`);
+
+    // Use up to 10 years of history, or whatever is available
+    const endDate   = dates[dates.length - 1];
+    const tenYrsAgo = new Date(endDate);
+    tenYrsAgo.setFullYear(tenYrsAgo.getFullYear() - 10);
+    const tenYrsAgoStr = tenYrsAgo.toISOString().split('T')[0];
+    let histStart = dates.find(d => d >= tenYrsAgoStr) || dates[0];
+
+    const priceStart = monthly[histStart];
+    const priceEnd   = monthly[endDate];
+    const histYears  = (new Date(endDate) - new Date(histStart)) / (1000*60*60*24*365.25);
+    const annualRate = Math.pow(priceEnd / priceStart, 1 / histYears) - 1;
+    const monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
+
+    // Project forward month by month
+    const totalMonths = years * 12;
+    const portfolioValues = [];
+    const contributedValues = [];
+    let portfolioValue = lump;
+    let totalContributed = lump;
+
+    for (let m = 0; m <= totalMonths; m++) {
+      if (m > 0) {
+        portfolioValue = portfolioValue * (1 + monthlyRate) + sip;
+        totalContributed += sip;
+      }
+      portfolioValues.push(portfolioValue);
+      contributedValues.push(totalContributed);
+    }
+
+    const finalValue = portfolioValues[totalMonths];
+    const finalContributed = contributedValues[totalMonths];
+    const totalGain = finalValue - finalContributed;
+    const totalGainPct = (totalGain / finalContributed) * 100;
+
+    // Chart labels — yearly
+    const projLabels = Array.from({length: totalMonths+1}, (_,i) => {
+      if (i % 12 === 0) return `Yr ${i/12}`;
+      return '';
+    });
+
+    const histYearsActual = Math.min(10, Math.round(histYears));
+
+    document.getElementById('futureResult').innerHTML = `
+      <div class="projection-hero">
+        <div class="proj-disclaimer">&#9888; Projection based on historical returns &mdash; not a guarantee</div>
+        <div class="proj-ticker-label">${ticker}</div>
+        <div class="proj-horizon">${histYearsActual}-year historical annualised return: ${(annualRate*100).toFixed(2)}% &nbsp;&middot;&nbsp; ${years}-year projection</div>
+
+        <div class="proj-value-row">
+          <div class="proj-value-block">
+            <div class="proj-value-label">Projected Value</div>
+            <div class="proj-big projected">${fmtK(finalValue)}</div>
+            <div class="proj-sub gain">+${fmtK(totalGain)} gain &nbsp;(+${fmt(totalGainPct)}%)</div>
+          </div>
+          <div class="proj-divider-line"></div>
+          <div class="proj-value-block">
+            <div class="proj-value-label">Total Contributed</div>
+            <div class="proj-big contributed">${fmtK(finalContributed)}</div>
+            <div class="proj-sub">${lump>0?'$'+fmt(lump)+' lump sum':''}${lump>0&&sip>0?' + ':''}${sip>0?'$'+fmt(sip)+'/mo':''}</div>
+          </div>
+        </div>
+
+        <div class="proj-stats">
+          <div class="proj-stat">
+            <div class="proj-stat-label">Ann. Return Used</div>
+            <div class="proj-stat-value gain">${(annualRate*100).toFixed(2)}%</div>
+          </div>
+          <div class="proj-stat">
+            <div class="proj-stat-label">Time Horizon</div>
+            <div class="proj-stat-value">${years} years</div>
+          </div>
+          <div class="proj-stat">
+            <div class="proj-stat-label">Multiplier</div>
+            <div class="proj-stat-value">${(finalValue/finalContributed).toFixed(2)}x</div>
+          </div>
+          <div class="proj-stat">
+            <div class="proj-stat-label">Total Gain</div>
+            <div class="proj-stat-value gain">+${fmtK(totalGain)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Growth Projection</span>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#0a84ff"></div>Portfolio Value</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#252d40"></div>Amount Contributed</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="futureChartCanvas"></canvas></div>
+      </div>
+
+      <div class="proj-fine-print">
+        This projection uses ${ticker}'s ${histYearsActual}-year annualised historical return of ${(annualRate*100).toFixed(2)}% as the assumed rate of growth. Returns are compounded monthly. The projected value assumes this rate continues unchanged into the future — actual returns will vary and could be significantly higher or lower. This is not financial advice. Past performance is not indicative of future results.
+      </div>`;
+
+    document.getElementById('futureResult').style.display = 'block';
+    if (futureChart) { futureChart.destroy(); futureChart = null; }
+
+    futureChart = new Chart(document.getElementById('futureChartCanvas').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: projLabels,
+        datasets: [
           {
-            label: tA,
-            data: valuesA,
+            label: 'Portfolio Value',
+            data: portfolioValues,
             borderColor: '#0a84ff',
-            backgroundColor: 'rgba(10,132,255,0.05)',
+            backgroundColor: 'rgba(10,132,255,0.08)',
             borderWidth: 2,
             pointRadius: 0,
             tension: 0.3,
             fill: true,
           },
           {
-            label: tB,
-            data: valuesB,
-            borderColor: '#30d158',
-            backgroundColor: 'rgba(48,209,88,0.05)',
+            label: 'Amount Contributed',
+            data: contributedValues,
+            borderColor: '#252d40',
+            backgroundColor: 'rgba(37,45,64,0.4)',
             borderWidth: 2,
+            borderDash: [4,3],
             pointRadius: 0,
-            tension: 0.3,
-            fill: true,
-          },
-          {
-            label: 'S&P 500',
-            data: valuesSP,
-            borderColor: '#bf5af2',
-            backgroundColor: 'rgba(191,90,242,0.04)',
-            borderWidth: 2,
-            borderDash: [5, 4],
-            pointRadius: 0,
-            tension: 0.3,
+            tension: 0,
             fill: true,
           }
         ]
@@ -882,64 +1205,59 @@ async function calculate() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
+        interaction: { mode:'index', intersect:false },
         plugins: {
-          legend: { display: false },
+          legend: { display:false },
           tooltip: {
-            backgroundColor: '#1a1f1a',
-            borderColor: '#2a302a',
-            borderWidth: 1,
-            titleColor: '#5a635a',
-            bodyColor: '#e8ede8',
-            titleFont: { family: "'DM Mono', monospace", size: 11 },
-            bodyFont: { family: "'DM Mono', monospace", size: 12 },
-            padding: 12,
+            backgroundColor:'#0f1117', borderColor:'#252d40', borderWidth:1,
+            titleColor:'#4a5568', bodyColor:'#f2f4f8',
+            titleFont:{family:"'DM Mono', monospace",size:11},
+            bodyFont:{family:"'DM Mono', monospace",size:12},
+            padding:12,
             callbacks: {
-              title: (items) => allDates[items[0].dataIndex] ? fmtDate(allDates[items[0].dataIndex]) : '',
-              label: (item) => ` ${item.dataset.label}   $${fmt(item.raw)}`
+              title: (items) => {
+                const mo = items[0].dataIndex;
+                const yr = Math.floor(mo/12);
+                const rem = mo % 12;
+                return rem === 0 ? `Year ${yr}` : `Year ${yr}, Month ${rem}`;
+              },
+              label: (item) => ` ${item.dataset.label}   ${fmtK(item.raw)}`
             }
           }
         },
         scales: {
-          x: {
-            grid: { color: 'rgba(255,255,255,0.03)' },
-            ticks: { color: '#5a635a', font: { family: "'DM Mono', monospace", size: 10 }, maxRotation: 0 },
-            border: { color: '#1e221e' }
-          },
-          y: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: {
-              color: '#5a635a',
-              font: { family: "'DM Mono', monospace", size: 10 },
-              callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : fmt(v))
-            },
-            border: { color: '#1e221e' }
-          }
+          x:{ grid:{color:'rgba(255,255,255,0.03)'}, ticks:{color:'#4a5568',font:{family:"'DM Mono', monospace",size:10},maxRotation:0}, border:{color:'#1c2030'} },
+          y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#4a5568',font:{family:"'DM Mono', monospace",size:10},callback:v=>fmtK(v)}, border:{color:'#1c2030'} }
         }
       }
     });
 
   } catch(err) {
-    setStatus(err.message || 'Something went wrong. Please try again.');
+    setStatus('futStatus', err.message || 'Something went wrong. Please try again.');
   } finally {
-    setLoading(false);
+    setLoading('futLoading', 'futBtn', false, 'Project Growth');
   }
 }
 
+// Enter key handling
 document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
   const id = document.activeElement.id;
-  if (e.key === 'Enter' && id !== 'tickerA' && id !== 'tickerB') calculate();
+  if (['tickerA','tickerB'].includes(id)) return;
+  if (id === 'futTicker') return;
+  if (activeTab === 'past') calculatePast();
+  else calculateFuture();
 });
 
-// Inject dropdowns into body
-['A','B'].forEach(slot => {
+// Inject dropdowns
+['A','B','F'].forEach(slot => {
   const dd = document.createElement('div');
   dd.id = 'dropdown' + slot;
   dd.className = 'ticker-dropdown';
   document.body.appendChild(dd);
 });
 
-// Default date: 5 years ago
+// Default past date: 5 years ago
 const _d = new Date();
 _d.setFullYear(_d.getFullYear() - 5);
 document.getElementById('startDate').value = _d.toISOString().split('T')[0];
